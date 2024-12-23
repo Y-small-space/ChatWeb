@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 添加一些全局样式 */
+body {
+  @apply antialiased;
+}
+
+/* 自定义 Ant Design 按钮样式 */
+.ant-btn-primary {
+  @apply bg-blue-500 border-blue-500;
+}
+
+.ant-btn-primary:hover {
+  @apply bg-blue-600 border-blue-600;
+}
+
+/* 自定义输入框样式 */
+.ant-input-affix-wrapper {
+  @apply border-gray-200;
+}
+
+.ant-input-affix-wrapper:hover {
+  @apply border-blue-500;
+}
+
+/* 磨砂玻璃效果 */
+.backdrop-blur-lg {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* 渐变文本 */
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* 添加平滑过渡 */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* 自定义阴影效果 */
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* 输入框聚焦时的效果 */
+.ant-input-affix-wrapper-focused {
+  @apply border-blue-500 shadow-sm;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* 按钮悬停效果 */
+.hover\:shadow-lg:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.theme-toggle-btn,
+.lang-toggle-btn {
+  transition: all 0.3s ease !important;
+}
+
+.theme-toggle-btn:hover,
+.lang-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  transform: scale(1.05);
+}
+
+[data-theme='dark'] .theme-toggle-btn:hover,
+[data-theme='dark'] .lang-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
