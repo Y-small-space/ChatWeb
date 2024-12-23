@@ -1,15 +1,18 @@
 "use client";
 
 import React from "react";
-import { Layout, Menu } from "antd";
+import { Layout, Menu, Button, Tooltip, Divider } from "antd";
 import {
   MessageOutlined,
   TeamOutlined,
   UserOutlined,
   SettingOutlined,
+  TranslationOutlined,
+  BulbOutlined,
 } from "@ant-design/icons";
 import { useRouter, usePathname } from "next/navigation";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 
@@ -22,7 +25,8 @@ export default function ChatLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { t } = useLanguage();
+  const { t, currentLanguage, toggleLanguage } = useLanguage();
+  const { currentTheme, toggleTheme } = useTheme();
   const { user } = useSelector((state: RootState) => state.auth);
 
   const menuItems = [
@@ -53,31 +57,70 @@ export default function ChatLayout({
       <Sider
         width={200}
         style={{
-          background: "#fff",
-          borderRight: "1px solid #f0f0f0",
+          background: currentTheme.colors.background,
+          borderRight: `1px solid ${currentTheme.colors.border}`,
           height: "100vh",
           position: "fixed",
           left: 0,
           top: 0,
           bottom: 0,
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <div
           style={{
             padding: "16px",
-            borderBottom: "1px solid #f0f0f0",
+            borderBottom: `1px solid ${currentTheme.colors.border}`,
             textAlign: "center",
           }}
         >
-          <h3>{user?.username || t("auth.notLoggedIn")}</h3>
+          <h3 style={{ color: currentTheme.colors.text }}>
+            {user?.username || t("auth.notLoggedIn")}
+          </h3>
         </div>
+
         <Menu
           mode="inline"
           selectedKeys={[pathname || ""]}
           items={menuItems}
           onClick={({ key }) => router.push(key)}
-          style={{ height: "calc(100% - 64px)", borderRight: 0 }}
+          style={{
+            flex: 1,
+            borderRight: 0,
+            background: currentTheme.colors.background,
+          }}
+          theme={currentTheme.type === "dark" ? "dark" : "light"}
         />
+
+        <div
+          style={{
+            padding: "16px",
+            borderTop: `1px solid ${currentTheme.colors.border}`,
+            display: "flex",
+            justifyContent: "space-around",
+            background: currentTheme.colors.background,
+          }}
+        >
+          <Tooltip title={t("settings.toggleTheme")}>
+            <Button
+              type="text"
+              icon={<BulbOutlined />}
+              onClick={toggleTheme}
+              style={{ color: currentTheme.colors.text }}
+            />
+          </Tooltip>
+          <Tooltip title={t("settings.toggleLanguage")}>
+            <Button
+              type="text"
+              icon={<TranslationOutlined />}
+              onClick={toggleLanguage}
+              style={{ color: currentTheme.colors.text }}
+            >
+              {currentLanguage.toUpperCase()}
+            </Button>
+          </Tooltip>
+        </div>
       </Sider>
       <Layout style={{ marginLeft: 200, height: "100vh" }}>{children}</Layout>
     </Layout>

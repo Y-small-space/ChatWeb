@@ -86,6 +86,8 @@ export const messages = {
       noStatus: "未设置",
       phone: "手机号码",
       notSet: "未设置",
+      toggleTheme: "切换主题",
+      toggleLanguage: "切换语言",
     },
     auth: {
       login: "登录",
@@ -210,6 +212,8 @@ export const messages = {
       noStatus: "No Status",
       phone: "Phone Number",
       notSet: "Not Set",
+      toggleTheme: "Toggle Theme",
+      toggleLanguage: "Toggle Language",
     },
     auth: {
       login: "Login",
