@@ -10,7 +10,7 @@ export type Language = keyof typeof messages;
 
 interface LanguageContextType {
   currentLanguage: Language;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string>) => string;
   toggleLanguage: () => void;
 }
 
@@ -18,8 +18,21 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
   undefined
 );
 
-function getNestedValue(obj: any, path: string): string {
-  return path.split(".").reduce((acc, part) => acc?.[part], obj) || path;
+function getNestedValue(
+  obj: any,
+  path: string,
+  params?: Record<string, string>
+): string {
+  const value = path.split(".").reduce((acc, part) => acc?.[part], obj) || path;
+
+  if (typeof value === "string" && params) {
+    return value.replace(/\{(\d+)\}/g, (_, index) => {
+      const key = Object.keys(params)[Number(index)];
+      return params[key] || "";
+    });
+  }
+
+  return value;
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
@@ -39,8 +52,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("language", newLanguage);
   };
 
-  const t = (key: string): string => {
-    return getNestedValue(messages[currentLanguage], key);
+  const t = (key: string, params?: Record<string, string>): string => {
+    return getNestedValue(messages[currentLanguage], key, params);
   };
 
   return (

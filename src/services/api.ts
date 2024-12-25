@@ -308,8 +308,17 @@ class ApiService {
         method: 'DELETE',
       }),
 
-    searchUsers: (query: string) =>
-      this.request<Friend[]>(`/users/search?q=${encodeURIComponent(query)}`),
+    searchUser: (query: string) =>
+      this.request<{
+        user: {
+          user_id: string;
+          username: string;
+          email: string;
+          phone?: string;
+          avatar?: string;
+          created_at: string;
+        };
+      }>(`/v1/user/search?query=${String(query)}`),
   };
 
   // 其他 API 方法...

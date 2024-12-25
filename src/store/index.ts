@@ -1,6 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage/session"; // 使用 sessionStorage
+import {
+  persistStore,
+  persistReducer,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from "redux-persist";
+import storage from "redux-persist/lib/storage"; // 使用 localStorage 而不是 sessionStorage
 import authReducer from "./slices/authSlice";
 import chatReducer from "./slices/chatSlice";
 import websocketReducer from "./slices/websocketSlice";
@@ -29,7 +38,16 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'], // 忽略 persist action
+        ignoredActions: [
+          FLUSH,
+          REHYDRATE,
+          PAUSE,
+          PERSIST,
+          PURGE,
+          REGISTER,
+          'persist/PERSIST',
+          'persist/REHYDRATE'
+        ],
       },
     }),
 });

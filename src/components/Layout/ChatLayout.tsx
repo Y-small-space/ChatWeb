@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Layout, Menu, Button, Tooltip, Divider } from "antd";
+import { Layout, Menu, Button, Tooltip, Divider, Avatar } from "antd";
 import {
   MessageOutlined,
   TeamOutlined,
@@ -75,6 +75,7 @@ export default function ChatLayout({
             textAlign: "center",
           }}
         >
+          <Avatar size={40}>{user?.username?.charAt(0)}</Avatar>
           <h3 style={{ color: currentTheme.colors.text }}>
             {user?.username || t("auth.notLoggedIn")}
           </h3>
