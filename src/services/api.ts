@@ -295,17 +295,26 @@ class ApiService {
 
   friends = {
     getFriends: () =>
-      this.request<Friend[]>('/friends'),
+      this.request<{
+        friends: Array<{
+          id: string;
+          username: string;
+          email: string;
+          phone?: string;
+          created_at: string;
+        }>;
+      }>('/v1/friendship/list'),
 
-    addFriend: (userId: string) =>
-      this.request<Friend>('/friends', {
+    sendRequest: (friendId: string) =>
+      this.request('/v1/friendship/request', {
         method: 'POST',
-        body: JSON.stringify({ user_id: userId }),
+        body: JSON.stringify({ user_id: friendId }),
       }),
 
-    removeFriend: (userId: string) =>
-      this.request(`/friends/${userId}`, {
-        method: 'DELETE',
+    handleRequest: (requestId: string, accept: boolean) =>
+      this.request('/v1/friendship/handle', {
+        method: 'PUT',
+        body: JSON.stringify({ request_id: requestId, accept }),
       }),
 
     searchUser: (query: string) =>
@@ -318,7 +327,7 @@ class ApiService {
           avatar?: string;
           created_at: string;
         };
-      }>(`/v1/user/search?query=${String(query)}`),
+      }>(`/v1/user/search?query=${encodeURIComponent(query)}`),
   };
 
   // 其他 API 方法...

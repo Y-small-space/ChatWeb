@@ -3,7 +3,11 @@
 import { useTheme } from "../../contexts/ThemeContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { Button } from "antd";
-import { SunOutlined, MoonOutlined, GlobalOutlined } from "@ant-design/icons";
+import {
+  SunOutlined,
+  MoonOutlined,
+  TranslationOutlined,
+} from "@ant-design/icons";
 import { motion } from "framer-motion";
 
 interface AuthLayoutProps {
@@ -13,7 +17,7 @@ interface AuthLayoutProps {
 
 export function AuthLayout({ children, title }: AuthLayoutProps) {
   const { currentTheme, toggleTheme } = useTheme();
-  const { currentLanguage, setLanguage } = useLanguage();
+  const { currentLanguage, toggleLanguage } = useLanguage();
 
   const buttonStyle = {
     width: 40,
@@ -63,18 +67,17 @@ export function AuthLayout({ children, title }: AuthLayoutProps) {
               currentTheme.type === "light" ? <MoonOutlined /> : <SunOutlined />
             }
             onClick={toggleTheme}
-            className="theme-toggle-btn"
             style={buttonStyle}
           />
         </motion.div>
         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
           <Button
+            icon={<TranslationOutlined />}
+            onClick={toggleLanguage}
             type="text"
-            icon={<GlobalOutlined />}
-            onClick={() => setLanguage(currentLanguage === "zh" ? "en" : "zh")}
-            className="lang-toggle-btn"
-            style={buttonStyle}
-          />
+          >
+            {currentLanguage.toUpperCase()}
+          </Button>
         </motion.div>
       </div>
 

@@ -2,13 +2,11 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "../../services/api";
 
 export interface Friend {
-  user_id: string;
+  id: string;
   username: string;
-  nickname: string;
-  avatar?: string;
-  status?: string;
-  online?: boolean;
-  last_seen?: string;
+  email: string;
+  phone?: string;
+  created_at: string;
 }
 
 interface FriendsState {
@@ -23,54 +21,37 @@ const initialState: FriendsState = {
   error: null,
 };
 
+// 获取好友列表
 export const fetchFriends = createAsyncThunk(
-  "friends/fetchFriends",
+  "v1/friends/fetchFriends",
   async () => {
     const response = await api.friends.getFriends();
-    if (response.code === 200) {
-      return response.data;
-    }
-    throw new Error(response.message);
+    return response.data.friends;
   }
 );
 
-export const addFriend = createAsyncThunk(
-  "friends/addFriend",
-  async (userId: string) => {
-    const response = await api.friends.addFriend(userId);
-    if (response.code === 200) {
-      return response.data;
-    }
-    throw new Error(response.message);
+// 发送好友请求
+export const sendFriendRequest = createAsyncThunk(
+  "v1/friends/sendRequest",
+  async (friendId: string) => {
+    await api.friends.sendRequest(friendId);
+    return friendId;
   }
 );
 
-export const removeFriend = createAsyncThunk(
-  "friends/removeFriend",
-  async (userId: string) => {
-    const response = await api.friends.removeFriend(userId);
-    if (response.code === 200) {
-      return userId;
-    }
-    throw new Error(response.message);
+// 处理好友请求
+export const handleFriendRequest = createAsyncThunk(
+  "v1/friends/handleRequest",
+  async ({ requestId, accept }: { requestId: string; accept: boolean }) => {
+    await api.friends.handleRequest(requestId, accept);
+    return requestId;
   }
 );
 
 const friendsSlice = createSlice({
   name: "friends",
   initialState,
-  reducers: {
-    updateFriendStatus: (state, action) => {
-      const { userId, online, lastSeen } = action.payload;
-      const friend = state.friends.find(f => f.user_id === userId);
-      if (friend) {
-        friend.online = online;
-        if (lastSeen) {
-          friend.last_seen = lastSeen;
-        }
-      }
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchFriends.pending, (state) => {
@@ -80,22 +61,12 @@ const friendsSlice = createSlice({
       .addCase(fetchFriends.fulfilled, (state, action) => {
         state.friends = action.payload;
         state.loading = false;
-        state.error = null;
       })
       .addCase(fetchFriends.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch friends";
-      })
-      .addCase(addFriend.fulfilled, (state, action) => {
-        state.friends.push(action.payload);
-      })
-      .addCase(removeFriend.fulfilled, (state, action) => {
-        state.friends = state.friends.filter(
-          (friend) => friend.user_id !== action.payload
-        );
       });
   },
 });
 
-export const { updateFriendStatus } = friendsSlice.actions;
 export default friendsSlice.reducer; 

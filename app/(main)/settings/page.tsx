@@ -4,12 +4,14 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../src/store";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
 import { useTheme } from "../../../src/contexts/ThemeContext";
-import { Avatar, Card, Divider, Switch } from "antd";
+import { Avatar, Card, Divider, Switch, Button, Space } from "antd";
 import {
   UserOutlined,
   BellOutlined,
   LockOutlined,
   GlobalOutlined,
+  EditOutlined,
+  PhoneOutlined,
 } from "@ant-design/icons";
 
 export default function SettingsPage() {
@@ -62,12 +64,30 @@ export default function SettingsPage() {
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <Avatar
-          size={100}
-          icon={<UserOutlined />}
-          src={user?.avatar}
-          style={{ marginBottom: "16px" }}
-        />
+        <div style={{ position: "relative", display: "inline-block" }}>
+          <Avatar
+            size={100}
+            icon={<UserOutlined />}
+            src={
+              user?.avatar ||
+              "https://api.dicebear.com/7.x/avataaars/svg?seed=default"
+            }
+            style={{ marginBottom: "16px" }}
+          />
+          <Button
+            type="primary"
+            size="small"
+            icon={<EditOutlined />}
+            style={{
+              position: "absolute",
+              right: 0,
+              bottom: "16px",
+              borderRadius: "50%",
+              padding: "8px",
+            }}
+            onClick={() => message.info(t("settings.uploadAvatarTip"))}
+          />
+        </div>
         <h1
           style={{
             fontSize: "24px",
@@ -91,23 +111,52 @@ export default function SettingsPage() {
         <div style={sectionStyle}>
           <UserOutlined style={iconStyle} />
           <span style={labelStyle}>{t("settings.username")}</span>
-          <span style={valueStyle}>{user?.username}</span>
+          <Space>
+            <span style={valueStyle}>{user?.username}</span>
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => message.info(t("settings.editUsernameTip"))}
+            >
+              {t("settings.edit")}
+            </Button>
+          </Space>
         </div>
         <Divider style={{ margin: "0" }} />
         <div style={sectionStyle}>
           <GlobalOutlined style={iconStyle} />
           <span style={labelStyle}>{t("settings.email")}</span>
-          <span style={valueStyle}>{user?.email}</span>
+          <Space>
+            <span style={valueStyle}>{user?.email}</span>
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => message.info(t("settings.editEmailTip"))}
+            >
+              {t("settings.edit")}
+            </Button>
+          </Space>
         </div>
         <Divider style={{ margin: "0" }} />
         <div style={sectionStyle}>
-          <UserOutlined style={iconStyle} />
+          <PhoneOutlined style={iconStyle} />
           <span style={labelStyle}>{t("settings.phone")}</span>
-          <span style={valueStyle}>{user?.phone || t("settings.notSet")}</span>
+          <Space>
+            <span style={valueStyle}>
+              {user?.phone || t("settings.notSet")}
+            </span>
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => message.info(t("settings.editPhoneTip"))}
+            >
+              {t("settings.edit")}
+            </Button>
+          </Space>
         </div>
       </Card>
 
-      <Card title={t("settings.notifications")} style={cardStyle}>
+      {/* <Card title={t("settings.notifications")} style={cardStyle}>
         <div style={sectionStyle}>
           <BellOutlined style={iconStyle} />
           <span style={labelStyle}>{t("settings.messageNotifications")}</span>
@@ -133,7 +182,7 @@ export default function SettingsPage() {
           <span style={labelStyle}>{t("settings.blockList")}</span>
           <span style={valueStyle}>0</span>
         </div>
-      </Card>
+      </Card> */}
     </div>
   );
 }

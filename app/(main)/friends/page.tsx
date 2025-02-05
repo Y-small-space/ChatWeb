@@ -1,216 +1,117 @@
 "use client";
 
-import { useState } from "react";
-import { Input, Avatar, Badge, List, Button, Modal, message } from "antd";
-import { SearchOutlined, UserAddOutlined } from "@ant-design/icons";
+import { List, Avatar, Button, Badge, Tabs, Input } from "antd";
+import { UserAddOutlined, SearchOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../../src/store";
+import { useTheme } from "../../../src/contexts/ThemeContext";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
-import { api } from "../../../src/services/api";
-import { debounce } from "lodash";
-import { addFriend } from "../../../src/store/slices/friendsSlice";
+import { mockChatUsers } from "../../../src/mock/chatData";
 
 const { Search } = Input;
-import { mockFriends } from "../../../src/mock/data";
-const listItemStyle = {
-  padding: "12px 20px",
-  cursor: "pointer",
-  transition: "background-color 0.3s",
-  borderRadius: "8px",
-  margin: "4px 0",
-};
-
-interface SearchResult {
-  user_id: string;
-  username: string;
-  email: string;
-  phone?: string;
-  avatar?: string;
-  created_at: string;
-  isFriend: boolean;
-}
 
 export default function FriendsPage() {
   const router = useRouter();
+  const { currentTheme } = useTheme();
   const { t } = useLanguage();
-  const dispatch = useDispatch();
-  const { friends } = useSelector((state: RootState) => state.friends);
 
-  const [searchText, setSearchText] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<SearchResult | null>(null);
+  const onlineUsers = mockChatUsers.filter((user) => user.online);
+  const offlineUsers = mockChatUsers.filter((user) => !user.online);
 
-  // 搜索处理函数
-  const handleSearch = debounce(async (value: string) => {
-    if (!value.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // 先在现有好友中搜索
-      const localResult = mockFriends.find(
-        (friend) =>
-          friend.name.toLowerCase().includes(value.toLowerCase()) ||
-          friend.email?.toLowerCase().includes(value.toLowerCase()) ||
-          friend.phone?.includes(value)
-      );
-
-      if (localResult) {
-        setSearchResults([
-          {
-            user_id: localResult.id,
-            username: localResult.name,
-            email: localResult.email || "",
-            avatar: localResult.avatar,
-            created_at: new Date().toISOString(),
-            isFriend: true,
-          },
-        ]);
-      } else {
-        // 如果本地没有结果，搜索所有用户
-        const response = await api.friends.searchUser(value);
-        if (response.code === 200) {
-          const { user } = response.data;
-          // 检查搜索到的用户是否已经是好友
-          const isFriend = mockFriends.some(
-            (friend) => friend.id === user.user_id
-          );
-          setSearchResults([
-            {
-              ...user,
-              isFriend,
-            },
-          ]);
-        }
-      }
-    } catch (error) {
-      message.error(t("friends.searchError"));
-      setSearchResults([]);
-    } finally {
-      setLoading(false);
-    }
-  }, 500);
-
-  // 处理添加好友
-  const handleAddFriend = async () => {
-    if (!selectedUser) return;
-
-    try {
-      await dispatch(addFriend(selectedUser.user_id)).unwrap();
-      message.success(t("friends.addSuccess"));
-      setShowAddModal(false);
-      setSelectedUser(null);
-    } catch (error) {
-      message.error(t("friends.addError"));
-    }
-  };
-
-  // 渲染列表项
-  const renderListItem = (user: SearchResult) => (
-    <List.Item
-      style={listItemStyle}
-      actions={[
-        !user.isFriend && (
-          <Button
-            key="add"
-            type="primary"
-            icon={<UserAddOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedUser(user);
-              setShowAddModal(true);
-            }}
-          >
-            {t("friends.add")}
-          </Button>
-        ),
-      ]}
-      onClick={() => {
-        if (user.isFriend) {
-          router.push(`/chat/${user.user_id}`);
-        }
-      }}
-    >
-      <List.Item.Meta
-        avatar={
-          <Badge dot={user.isFriend} offset={[-6, 28]} color="green">
-            <Avatar src={user.avatar} size={48}>
-              {/* {user.username[0]?.toUpperCase()} */}
-            </Avatar>
-          </Badge>
-        }
-        title={user.username}
-        description={
-          <div>
-            <div>{user.email}</div>
-            {user.phone && <div>{user.phone}</div>}
-            <div>
-              {user.isFriend
-                ? t("friends.alreadyFriend")
-                : t("friends.notFriend")}
-            </div>
-          </div>
-        }
-      />
-    </List.Item>
+  const renderUserList = (users: typeof mockChatUsers) => (
+    <List
+      dataSource={users}
+      renderItem={(user) => (
+        <List.Item
+          style={{
+            padding: "12px",
+            cursor: "pointer",
+            borderRadius: "12px",
+            background: currentTheme.colors.background,
+            border: "none",
+            marginBottom: "8px",
+          }}
+          onClick={() => router.push(`/chat/${user.id}`)}
+        >
+          <List.Item.Meta
+            avatar={
+              <Badge dot={user.online} offset={[-6, 28]} color="green">
+                <Avatar src={user.avatar} size={48} />
+              </Badge>
+            }
+            title={user.name}
+            description={
+              <div style={{ color: currentTheme.colors.secondaryText }}>
+                {user.online
+                  ? t("friends.online")
+                  : t("friends.lastSeen", {
+                      time: new Date(user.last_seen || "").toLocaleString(),
+                    })}
+              </div>
+            }
+          />
+        </List.Item>
+      )}
+    />
   );
 
   return (
-    <div style={{ height: "100%", padding: "20px" }}>
-      <h2 style={{ marginBottom: "20px", fontSize: "18px", fontWeight: 500 }}>
-        {t("friends.title")}
-      </h2>
-
-      <Search
-        placeholder={t("friends.searchPlaceholder")}
-        allowClear
-        enterButton={<SearchOutlined />}
-        loading={loading}
-        onChange={(e) => {
-          const value = e.target.value;
-          setSearchText(value);
-          if (!value.trim()) {
-            setSearchResults([]);
-          }
-        }}
-        onSearch={(value) => {
-          setSearchText(value);
-          if (value.trim()) {
-            handleSearch(value);
-          }
-        }}
-        style={{ marginBottom: 16 }}
-      />
-
-      <List
-        // dataSource={searchText ? searchResults : friends}
-        dataSource={searchText ? searchResults : mockFriends}
-        renderItem={renderListItem}
-        locale={{
-          emptyText: searchText
-            ? t("friends.noResults")
-            : t("friends.noFriends"),
-        }}
-      />
-
-      <Modal
-        title={t("friends.addFriendTitle")}
-        open={showAddModal}
-        onOk={handleAddFriend}
-        onCancel={() => {
-          setShowAddModal(false);
-          setSelectedUser(null);
+    <div style={{ padding: "20px" }}>
+      <div
+        style={{
+          marginBottom: "20px",
+          display: "flex",
+          gap: "16px",
+          justifyContent: "space-between",
         }}
       >
-        <p>
-          {t("friends.addFriendConfirm", { "0": selectedUser?.username || "" })}
-        </p>
-      </Modal>
+        <Search
+          placeholder={t("friends.search")}
+          style={{ maxWidth: "300px" }}
+          prefix={
+            <SearchOutlined
+              style={{ color: currentTheme.colors.secondaryText }}
+            />
+          }
+        />
+        <Button
+          type="primary"
+          icon={<UserAddOutlined />}
+          onClick={() => router.push("/friends/add")}
+        >
+          {t("friends.add")}
+        </Button>
+      </div>
+
+      <Tabs
+        items={[
+          {
+            key: "all",
+            label: t("friends.all"),
+            children: renderUserList(mockChatUsers),
+          },
+          {
+            key: "online",
+            label: (
+              <span>
+                {t("friends.online")}
+                <Badge
+                  count={onlineUsers.length}
+                  style={{
+                    marginLeft: "8px",
+                    backgroundColor: currentTheme.colors.success,
+                  }}
+                />
+              </span>
+            ),
+            children: renderUserList(onlineUsers),
+          },
+          {
+            key: "offline",
+            label: t("friends.offline"),
+            children: renderUserList(offlineUsers),
+          },
+        ]}
+      />
     </div>
   );
 }
