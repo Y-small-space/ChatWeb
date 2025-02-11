@@ -2,26 +2,24 @@
 
 import { useParams } from "next/navigation";
 import ChatWindow from "../../../../src/components/Chat/ChatWindow";
-import { getChatMessages, getChatInfo } from "../../../../src/mock/chatData";
+import { getChatInfo } from "../../../../src/mock/chatData";
+import { useEffect, useState } from "react";
 
 export default function ChatPage() {
   const { id } = useParams();
+  const [userInfo, setUserInfo] = useState();
   const chatId = Array.isArray(id) ? id[0] : id;
-  const isGroup = false;
 
-  const messages = getChatMessages(chatId, isGroup);
-  const chatInfo = getChatInfo(chatId, isGroup);
+  const getUserInfo = async () => {
+    const userList = localStorage.getItem("userList");
+    const user = JSON.parse(userList)?.find((user) => user.id === chatId);
 
-  if (!chatInfo) {
-    return <div>聊天不存在</div>;
-  }
+    setUserInfo(user);
+  };
 
-  return (
-    <ChatWindow
-      type="private"
-      id={chatId}
-      messages={messages}
-      chatInfo={chatInfo}
-    />
-  );
+  useEffect(() => {
+    getUserInfo();
+  }, []);
+
+  return <ChatWindow type="private" id={chatId} chatInfo={userInfo} />;
 }

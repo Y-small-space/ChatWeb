@@ -12,9 +12,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <LanguageProvider>
-          <ThemeProvider>
-            <AuthCheck>{children}</AuthCheck>
-          </ThemeProvider>
+          <ThemeProvider>{children}</ThemeProvider>
         </LanguageProvider>
       </PersistGate>
     </Provider>

@@ -9,6 +9,7 @@ import {
   mockPrivateMessages,
   mockGroupChats,
   mockChatUsers,
+  mockGroupMessages,
 } from "../../../src/mock/chatData";
 import { formatDistance } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
@@ -31,42 +32,46 @@ const formatMessageTime = (timestamp: string) => {
 export default function ChatListPage() {
   const router = useRouter();
   const { currentTheme } = useTheme();
-  const { t, currentLanguage } = useLanguage();
+  const { t } = useLanguage();
 
   // 合并私聊和群聊数据
   const chatList = [
-    ...mockChatUsers.map((user) => {
-      const messages = mockPrivateMessages[user.id] || [];
-      const lastMessage = messages[messages.length - 1];
-      return {
-        id: user.id,
-        name: user.name,
-        avatar: user.avatar,
-        lastMessage: lastMessage?.content || "",
-        timestamp: lastMessage?.created_at || "",
-        unread: messages.filter(
-          (m) => m.status !== "read" && m.sender_id !== "1"
-        ).length,
-        online: user.online,
-        type: "private",
-      };
-    }),
-    ...mockGroupChats.map((group) => {
-      const messages = mockPrivateMessages[group.id] || [];
-      const lastMessage = messages[messages.length - 1];
-      return {
-        id: group.id,
-        name: group.name,
-        avatar: group.avatar,
-        lastMessage: lastMessage?.content || "",
-        timestamp: lastMessage?.created_at || "",
-        unread: messages.filter(
-          (m) => m.status !== "read" && m.sender_id !== "1"
-        ).length,
-        memberCount: group.members.length,
-        type: "group",
-      };
-    }),
+    ...(mockPrivateMessages.length
+      ? mockChatUsers?.map((user) => {
+          const messages = mockPrivateMessages[user.id] || [];
+          const lastMessage = messages[messages.length - 1];
+          return {
+            id: user.id,
+            name: user.name,
+            avatar: user.avatar,
+            lastMessage: lastMessage?.content || "",
+            timestamp: lastMessage?.created_at || "",
+            unread: messages.filter(
+              (m) => m.status !== "read" && m.sender_id !== "1"
+            ).length,
+            online: user.online,
+            type: "private",
+          };
+        })
+      : []),
+    ...(mockGroupMessages.length
+      ? mockGroupChats?.map((group) => {
+          const messages = mockGroupMessages[group.id] || [];
+          const lastMessage = messages[messages.length - 1];
+          return {
+            id: group.id,
+            name: group.name,
+            avatar: group.avatar,
+            lastMessage: lastMessage?.content || "",
+            timestamp: lastMessage?.created_at || "",
+            unread: messages.filter(
+              (m) => m.status !== "read" && m.sender_id !== "1"
+            ).length,
+            memberCount: group.members.length,
+            type: "group",
+          };
+        })
+      : []),
   ].sort((a, b) => {
     if (!a.timestamp || !b.timestamp) return 0;
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
