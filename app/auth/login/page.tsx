@@ -1,39 +1,36 @@
 "use client"; // 启用 React 服务器组件的客户端模式
-
-import { useEffect } from "react";
 import { Form, Input, Button, message } from "antd";
 import { useRouter } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
-import { login } from "../../../src/store/slices/authSlice"; // 引入 Redux 登录操作
-import { RootState } from "../../../src/store"; // 获取全局 state 类型
 import { useLanguage } from "../../../src/contexts/LanguageContext"; // 使用多语言 hook
 import Link from "next/link";
 import { AuthLayout } from "../../../src/components/Auth/AuthLayout"; // 认证页面布局组件
 import { useTheme } from "../../../src/contexts/ThemeContext"; // 使用主题 hook
+import { useState } from "react";
+import { api } from "../../../src/services/api";
+import { wsManager } from "../../../src/services/websocket";
 
 export default function LoginPage() {
   const router = useRouter(); // Next.js 路由
-  const dispatch = useDispatch(); // Redux 派发函数
   const { t } = useLanguage(); // 获取翻译函数
+  const [loading, setLoading] = useState(false);
   const { currentTheme } = useTheme(); // 获取当前主题
-  const { isAuthenticated, loading } = useSelector(
-    (state: RootState) => state.auth
-  ); // 获取 Redux 中的认证状态和加载状态
-
-  // 监听 isAuthenticated 状态，已登录则跳转首页
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/");
-    }
-  }, [isAuthenticated, router]);
 
   // 登录表单提交处理
   const onFinish = async (values: { email: string; password: string }) => {
     try {
       // 触发 Redux 登录 action，并等待结果
-      const result = await dispatch(login(values)).unwrap();
-      message.success(t("auth.loginSuccess")); // 显示登录成功消息
-      router.push("/"); // 跳转到首页
+      setLoading(true);
+      const response: any = await api.auth.login(values); // 调用登录 API
+      if (response.code === 200) {
+        // 如果登录成功
+        const { token, ...userData } = response.data; // 拿到 token 和用户数据
+        localStorage.setItem("token", token); // 将 token 存储到 localStorage
+        localStorage.setItem("user", JSON.stringify(userData)); // 存储用户信息
+        localStorage.setItem("userId", userData?.user_id); // 存储用户信息
+        wsManager.connect();
+      }
+      router.push("/");
+      setLoading(false);
     } catch (error: unknown) {
       if (error instanceof Error) {
         message.error(error.message); // 显示错误信息
@@ -41,6 +38,7 @@ export default function LoginPage() {
         message.error(t("auth.loginError")); // 默认错误信息
       }
     }
+    setLoading(false);
   };
 
   return (

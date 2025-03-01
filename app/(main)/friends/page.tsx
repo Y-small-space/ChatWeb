@@ -38,7 +38,7 @@ export default function FriendsPage() {
             marginBottom: "8px",
           }}
           onClick={() => {
-            router.push(`/chat/${user.id}`);
+            router.push(`/friends/details/${user.username}`);
           }}
         >
           <List.Item.Meta
@@ -64,11 +64,6 @@ export default function FriendsPage() {
   );
 
   const renderAddFriends = () => {
-    const handleAddFriend = (userId: string) => {
-      const res = api.friends.sendRequest(userId);
-      console.log(res);
-    };
-
     return (
       <div style={{ padding: "16px" }}>
         <Search
@@ -89,7 +84,8 @@ export default function FriendsPage() {
         />
         <List
           dataSource={searchUser}
-          renderItem={(user) => (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          renderItem={(user: any) => (
             <List.Item
               style={{
                 padding: "12px",
@@ -98,15 +94,19 @@ export default function FriendsPage() {
                 border: "none",
                 marginBottom: "8px",
               }}
+              onClick={() => {
+                // router.push("")
+                router.push(`/friends/details/add_${user.username}`);
+              }}
             >
               <List.Item.Meta
                 avatar={<Avatar src={user?.avatar} size={48} />}
                 title={user?.username}
                 description={user?.email}
               />
-              <Button onClick={() => handleAddFriend(user?.id)}>
+              {/* <Button onClick={() => handleAddFriend(user?.id)}>
                 {t("friends.add")}
-              </Button>
+              </Button> */}
             </List.Item>
           )}
         />

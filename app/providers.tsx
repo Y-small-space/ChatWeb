@@ -1,20 +1,18 @@
 "use client";
 
 import { Provider } from "react-redux";
-import { PersistGate } from "redux-persist/integration/react";
-import { store, persistor } from "../src/store";
+import { store } from "../src/store";
 import { ThemeProvider } from "../src/contexts/ThemeContext";
 import { LanguageProvider } from "../src/contexts/LanguageContext";
-import { AuthCheck } from "../src/components/Auth/AuthCheck";
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  console.log("login...");
+
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <LanguageProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </LanguageProvider>
-      </PersistGate>
+      <LanguageProvider>
+        <ThemeProvider>{children}</ThemeProvider>
+      </LanguageProvider>
     </Provider>
   );
 }

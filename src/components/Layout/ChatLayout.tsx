@@ -1,22 +1,18 @@
 "use client";
 
-import React from "react";
-import { Layout, Menu, Button, Tooltip, Divider, Avatar } from "antd";
+import React, { useEffect, useState } from "react";
+import { Layout, Menu, Button, Tooltip, Avatar } from "antd";
 import {
   MessageOutlined,
   TeamOutlined,
   UserOutlined,
   SettingOutlined,
-  TranslationOutlined,
   BulbOutlined,
   CompassOutlined,
 } from "@ant-design/icons";
 import { useRouter, usePathname } from "next/navigation";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useTheme } from "../../contexts/ThemeContext";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store";
-
 const { Sider } = Layout;
 
 export default function ChatLayout({
@@ -28,7 +24,17 @@ export default function ChatLayout({
   const pathname = usePathname();
   const { t, currentLanguage, toggleLanguage } = useLanguage();
   const { currentTheme, toggleTheme } = useTheme();
-  const { user } = useSelector((state: RootState) => state.auth);
+  const [user, setUser] = useState();
+
+  useEffect(() => {
+    getUserInfo();
+  }, []);
+
+  const getUserInfo = async () => {
+    const user = localStorage.getItem("user");
+    const _ = JSON.parse(user);
+    setUser(_);
+  };
 
   const menuItems = [
     {
@@ -59,12 +65,13 @@ export default function ChatLayout({
   ];
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ maxHeight: "100vh" }}>
       <Sider
         width={200}
         style={{
-          overflow: "auto",
-          height: "100vh",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
           position: "fixed",
           left: 0,
           top: 0,
@@ -149,9 +156,10 @@ export default function ChatLayout({
           }}
           theme={currentTheme.type === "dark" ? "dark" : "light"}
         />
-
+        {/* <div style={{ height: "100%" }}></div> */}
         <div
           style={{
+            height: "40px",
             padding: "12px",
             borderTop: `1px solid ${currentTheme.colors.border}`,
             display: "flex",

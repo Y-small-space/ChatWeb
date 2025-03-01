@@ -1,3 +1,5 @@
+import { log } from "console";
+
 export const messages = {
   zh: {
     menu: {
@@ -65,12 +67,13 @@ export const messages = {
       handleRequestError: "处理好友请求失败",
       search: "搜索好友",
       all: "全部好友",
-      online: "在线好友",
-      offline: "离线好友",
+      onlineFriends: "在线好友",
+      offlineFriends: "离线好友",
       lastSeen: "最后在线：{time}",
       remove: "删除好友",
       block: "拉黑",
       unblock: "取消拉黑",
+      sendMessage: "发消息"
     },
     groups: {
       title: "我的群组",
@@ -92,8 +95,6 @@ export const messages = {
       memberRemoved: "成员已移除",
       memberRemoveError: "移除成员失败",
       uploadAvatar: "上传群头像",
-      create: "创建群组",
-      members: "{count}位成员",
       join: "加入群组",
       leave: "退出群组",
       settings: "群组设置",
@@ -158,6 +159,7 @@ export const messages = {
       passwordTooShort: "密码至少6位",
       phoneInvalid: "请输入有效的手机号",
       notLoggedIn: "未登录",
+      logout: "退出登录",
     },
     email: "邮箱",
     nickname: "昵称",
@@ -231,7 +233,7 @@ export const messages = {
       offline: "Offline",
       searchPlaceholder: "Search username or nickname",
       searchError: "Search failed",
-      add: "Add Friend",
+      add: "Add",
       addSuccess: "Friend request sent",
       addError: "Failed to add friend",
       alreadyFriend: "Already a friend",
@@ -246,12 +248,13 @@ export const messages = {
       handleRequestError: "Failed to handle friend request",
       search: "Search Friends",
       all: "All Friends",
-      online: "Online Friends",
-      offline: "Offline Friends",
+      onlineFriends: "Online Friends",
+      offlineFriends: "Offline Friends",
       lastSeen: "Last seen: {time}",
       remove: "Remove Friend",
       block: "Block",
       unblock: "Unblock",
+      sendMessage: "Chat"
     },
     groups: {
       title: "My Groups",
@@ -273,8 +276,6 @@ export const messages = {
       memberRemoved: "Member removed",
       memberRemoveError: "Failed to remove member",
       uploadAvatar: "Upload Group Avatar",
-      create: "Create Group",
-      members: "{count} members",
       join: "Join Group",
       leave: "Leave Group",
       settings: "Group Settings",
@@ -339,6 +340,7 @@ export const messages = {
       passwordTooShort: "Password must be at least 6 characters",
       phoneInvalid: "Please enter a valid phone number",
       notLoggedIn: "Not Logged In",
+      logout: "Logout",
     },
     email: "Email",
     nickname: "Nickname",

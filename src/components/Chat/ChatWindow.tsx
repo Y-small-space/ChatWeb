@@ -18,6 +18,7 @@ import { ImagePreview } from "./ImagePreview";
 import { MessageItem } from "./MessageItem";
 import { ChatMessage, ChatUser, GroupChat } from "../../mock/chatData";
 import { Message } from "../../services/types";
+import { wsManager } from "../../services/websocket";
 
 interface ChatWindowProps {
   type: "private" | "group";
@@ -43,15 +44,13 @@ export const ChatWindow = ({ type, chatInfo, id }) => {
       id: `m${Date.now()}`,
       type: "text",
       content,
-      sender_id: "1", // 当前用户 ID
+      sender_id: String(localStorage.getItem("userId")), // 当前用户 ID
       receiver_id: type === "private" ? id : undefined,
-      group_id: type === "group" ? id : undefined,
+      // group_id: type === "group" ? id : undefined,
       created_at: new Date().toISOString(),
       status: "sent",
     };
-
-    setMessages((prev) => [...prev, newMessage]);
-    scrollToBottom();
+    wsManager.sendMessage(newMessage);
   };
 
   // 滚动到底部

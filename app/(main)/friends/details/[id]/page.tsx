@@ -1,6 +1,7 @@
 "use client";
-import { useLanguage } from "../../../src/contexts/LanguageContext";
-import { useTheme } from "../../../src/contexts/ThemeContext";
+
+import { useParams, useRouter } from "next/navigation";
+
 import { Avatar, Card, Divider, Switch, Button, Space, message } from "antd";
 import {
   UserOutlined,
@@ -9,24 +10,34 @@ import {
   PhoneOutlined,
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { wsManager } from "../../../src/services/websocket";
+import { api } from "../../../../../src/services/api";
+import { useLanguage } from "../../../../../src/contexts/LanguageContext";
+import { useTheme } from "../../../../../src/contexts/ThemeContext";
 
-export default function SettingsPage() {
+export default function FriendsDetails() {
+  const { id } = useParams();
   const { t } = useLanguage();
   const { currentTheme } = useTheme();
-  const router = useRouter();
   const [user, setUser] = useState();
+  const router = useRouter();
+
+  const getUserInfo = async () => {
+    let searchValue = id;
+    if (String(searchValue).includes("add")) {
+      searchValue = searchValue.replace("add_", "");
+    }
+    const res = await api.friends.searchUser(searchValue);
+    setUser(res.data.user);
+  };
+
+  const handleAddFriend = (userId: string) => {
+    const res = api.friends.sendRequest(userId);
+    console.log(res);
+  };
 
   useEffect(() => {
     getUserInfo();
   }, []);
-
-  const getUserInfo = async () => {
-    const user = localStorage.getItem("user");
-    const _ = JSON.parse(user);
-    setUser(_);
-  };
 
   const containerStyle = {
     width: "100%",
@@ -83,19 +94,6 @@ export default function SettingsPage() {
             }
             style={{ marginBottom: "16px" }}
           />
-          <Button
-            type="primary"
-            size="small"
-            icon={<EditOutlined />}
-            style={{
-              position: "absolute",
-              right: 0,
-              bottom: "16px",
-              borderRadius: "50%",
-              padding: "8px",
-            }}
-            onClick={() => message.info(t("settings.uploadAvatarTip"))}
-          />
         </div>
         <h1
           style={{
@@ -122,13 +120,6 @@ export default function SettingsPage() {
           <span style={labelStyle}>{t("settings.username")}</span>
           <Space>
             <span style={valueStyle}>{user?.username}</span>
-            <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => message.info(t("settings.editUsernameTip"))}
-            >
-              {t("settings.edit")}
-            </Button>
           </Space>
         </div>
         <Divider style={{ margin: "0" }} />
@@ -137,13 +128,6 @@ export default function SettingsPage() {
           <span style={labelStyle}>{t("settings.email")}</span>
           <Space>
             <span style={valueStyle}>{user?.email}</span>
-            <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => message.info(t("settings.editEmailTip"))}
-            >
-              {t("settings.edit")}
-            </Button>
           </Space>
         </div>
         <Divider style={{ margin: "0" }} />
@@ -154,59 +138,32 @@ export default function SettingsPage() {
             <span style={valueStyle}>
               {user?.phone || t("settings.notSet")}
             </span>
-            <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => message.info(t("settings.editPhoneTip"))}
-            >
-              {t("settings.edit")}
-            </Button>
           </Space>
         </div>
+      </Card>
+      {String(id).includes("add") ? (
+        <div style={{ textAlign: "center", color: currentTheme.colors.text }}>
+          <Button
+            shape="circle"
+            size="large"
+            style={{ width: "100px", height: "100px" }}
+            onClick={() => handleAddFriend(user?.id)}
+          >
+            {t("friends.add")}
+          </Button>
+        </div>
+      ) : (
         <div style={{ textAlign: "center", color: currentTheme.colors.text }}>
           <Button
             shape="circle"
             size="large"
             style={{ width: "80px", height: "80px" }}
-            onClick={() => {
-              localStorage.clear();
-              sessionStorage.clear();
-              wsManager.disconnect();
-              router.push(`/auth/login`);
-            }}
+            onClick={() => router.push(`/chat/${user.id}`)}
           >
-            {t("auth.logout")}
+            {t("friends.sendMessage")}
           </Button>
         </div>
-      </Card>
-
-      {/* <Card title={t("settings.notifications")} style={cardStyle}>
-        <div style={sectionStyle}>
-          <BellOutlined style={iconStyle} />
-          <span style={labelStyle}>{t("settings.messageNotifications")}</span>
-          <Switch defaultChecked size="small" />
-        </div>
-        <Divider style={{ margin: "0" }} />
-        <div style={sectionStyle}>
-          <BellOutlined style={iconStyle} />
-          <span style={labelStyle}>{t("settings.soundEnabled")}</span>
-          <Switch defaultChecked size="small" />
-        </div>
-      </Card>
-
-      <Card title={t("settings.privacy")} style={cardStyle}>
-        <div style={sectionStyle}>
-          <LockOutlined style={iconStyle} />
-          <span style={labelStyle}>{t("settings.lastSeen")}</span>
-          <span style={valueStyle}>{t("settings.everyone")}</span>
-        </div>
-        <Divider style={{ margin: "0" }} />
-        <div style={sectionStyle}>
-          <LockOutlined style={iconStyle} />
-          <span style={labelStyle}>{t("settings.blockList")}</span>
-          <span style={valueStyle}>0</span>
-        </div>
-      </Card> */}
+      )}
     </div>
   );
 }

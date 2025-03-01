@@ -187,7 +187,6 @@ class ApiService {
         body: JSON.stringify(data),
       }),
 
-    me: () => this.request('/user/profile'),
   };
 
   user = {

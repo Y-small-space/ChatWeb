@@ -13,13 +13,18 @@ class WebSocketManager {
   private reconnectTimeout = 1000;
 
   connect() {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    const userID = localStorage.getItem('userId');
+    console.log(userID);
 
-    this.ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}?token=${token}`);
+
+    this.ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}?userId=${userID}`);
+    console.log(this.ws);
+
 
     this.ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log(data);
+
       this.handleWebSocketMessage(data);
     };
 
@@ -33,6 +38,8 @@ class WebSocketManager {
   }
 
   private handleWebSocketMessage(data: any) {
+    console.log(data);
+
     switch (data.type) {
       case 'message':
         store.dispatch(addMessage(data.payload));
@@ -66,8 +73,10 @@ class WebSocketManager {
   }
 
   sendMessage(message: any) {
+
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
+      console.log(message);
     }
   }
 

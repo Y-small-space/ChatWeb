@@ -42,24 +42,6 @@ const initialState: ChatState = {
   userStatuses: {},
 };
 
-export const sendMessage = createAsyncThunk(
-  "chat/sendMessage",
-  async (data: {
-    type: "text" | "image" | "file";
-    content: string;
-    receiver_id?: string;
-    group_id?: string;
-    reply_to?: string;
-    forward_from?: string;
-  }) => {
-    const response = await api.chat.sendMessage(data);
-    if (response.code === 200) {
-      return response.data;
-    }
-    throw new Error(response.message);
-  }
-);
-
 export const fetchMessages = createAsyncThunk(
   "chat/fetchMessages",
   async (params: {
@@ -139,14 +121,6 @@ const chatSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(sendMessage.fulfilled, (state, action) => {
-        const message = action.payload;
-        const chatId = message.group_id || message.receiver_id;
-        if (!state.messages[chatId]) {
-          state.messages[chatId] = [];
-        }
-        state.messages[chatId].push(message);
-      })
       .addCase(fetchMessages.fulfilled, (state, action) => {
         const { messages, chatId } = action.payload;
         if (!state.messages[chatId]) {

@@ -7,12 +7,12 @@ import { useTheme } from "../../../src/contexts/ThemeContext";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
 import {
   mockPrivateMessages,
-  mockGroupChats,
-  mockChatUsers,
   mockGroupMessages,
 } from "../../../src/mock/chatData";
 import { formatDistance } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
+import { useEffect } from "react";
+import { wsManager } from "../../../src/services/websocket";
 
 const { Search } = Input;
 
@@ -34,48 +34,9 @@ export default function ChatListPage() {
   const { currentTheme } = useTheme();
   const { t } = useLanguage();
 
-  // 合并私聊和群聊数据
-  const chatList = [
-    ...(mockPrivateMessages.length
-      ? mockChatUsers?.map((user) => {
-          const messages = mockPrivateMessages[user.id] || [];
-          const lastMessage = messages[messages.length - 1];
-          return {
-            id: user.id,
-            name: user.name,
-            avatar: user.avatar,
-            lastMessage: lastMessage?.content || "",
-            timestamp: lastMessage?.created_at || "",
-            unread: messages.filter(
-              (m) => m.status !== "read" && m.sender_id !== "1"
-            ).length,
-            online: user.online,
-            type: "private",
-          };
-        })
-      : []),
-    ...(mockGroupMessages.length
-      ? mockGroupChats?.map((group) => {
-          const messages = mockGroupMessages[group.id] || [];
-          const lastMessage = messages[messages.length - 1];
-          return {
-            id: group.id,
-            name: group.name,
-            avatar: group.avatar,
-            lastMessage: lastMessage?.content || "",
-            timestamp: lastMessage?.created_at || "",
-            unread: messages.filter(
-              (m) => m.status !== "read" && m.sender_id !== "1"
-            ).length,
-            memberCount: group.members.length,
-            type: "group",
-          };
-        })
-      : []),
-  ].sort((a, b) => {
-    if (!a.timestamp || !b.timestamp) return 0;
-    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-  });
+  useEffect(() => {
+    wsManager.connect();
+  }, []);
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
@@ -102,7 +63,7 @@ export default function ChatListPage() {
           overflow: "auto",
           padding: "20px",
         }}
-        dataSource={chatList}
+        dataSource={[]}
         renderItem={(chat) => (
           <List.Item
             style={{
@@ -116,18 +77,18 @@ export default function ChatListPage() {
             }}
             onClick={() =>
               router.push(
-                `/chat/${chat.type === "group" ? "group/" : ""}${chat.id}`
+                `/chat/${chat?.type === "group" ? "group/" : ""}${chat?.id}`
               )
             }
           >
             <List.Item.Meta
               avatar={
                 <Badge
-                  dot={chat.type === "private" && chat.online}
+                  dot={chat?.type === "private" && chat?.online}
                   offset={[-6, 28]}
                   color="green"
                 >
-                  <Avatar src={chat.avatar} size={48} />
+                  <Avatar src={chat?.avatar} size={48} />
                 </Badge>
               }
               title={
@@ -135,8 +96,8 @@ export default function ChatListPage() {
                   style={{ display: "flex", justifyContent: "space-between" }}
                 >
                   <span style={{ color: currentTheme.colors.text }}>
-                    {chat.name}
-                    {chat.type === "group" && (
+                    {chat?.name}
+                    {chat?.type === "group" && (
                       <span
                         style={{
                           fontSize: "12px",
@@ -144,7 +105,7 @@ export default function ChatListPage() {
                           marginLeft: "8px",
                         }}
                       >
-                        ({chat.memberCount})
+                        ({chat?.memberCount})
                       </span>
                     )}
                   </span>
@@ -154,7 +115,7 @@ export default function ChatListPage() {
                       color: currentTheme.colors.secondaryText,
                     }}
                   >
-                    {formatMessageTime(chat.timestamp)}
+                    {formatMessageTime(chat?.timestamp)}
                   </span>
                 </div>
               }
@@ -171,11 +132,11 @@ export default function ChatListPage() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {chat.lastMessage}
+                    {chat?.lastMessage}
                   </span>
-                  {chat.unread > 0 && (
+                  {chat?.unread > 0 && (
                     <Badge
-                      count={chat.unread}
+                      count={chat?.unread}
                       style={{ backgroundColor: "#ff2d55" }}
                     />
                   )}
