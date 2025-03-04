@@ -4,7 +4,6 @@ import { Providers } from "./providers";
 import { GlobalTheme } from "../src/components/Theme/GlobalTheme";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import "./globals.css";
-import { AuthCheck } from "../src/components/Auth/AuthCheck";
 
 export default function RootLayout({
   children,
@@ -16,9 +15,7 @@ export default function RootLayout({
       <body>
         <AntdRegistry>
           <Providers>
-            <AuthCheck>
-              <GlobalTheme>{children}</GlobalTheme>
-            </AuthCheck>
+            <GlobalTheme>{children}</GlobalTheme>
           </Providers>
         </AntdRegistry>
       </body>

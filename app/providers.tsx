@@ -6,8 +6,6 @@ import { ThemeProvider } from "../src/contexts/ThemeContext";
 import { LanguageProvider } from "../src/contexts/LanguageContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  console.log("login...");
-
   return (
     <Provider store={store}>
       <LanguageProvider>

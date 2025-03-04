@@ -5,7 +5,6 @@ import { TeamOutlined, UserAddOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useTheme } from "../../../src/contexts/ThemeContext";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
-import { mockGroupChats } from "../../../src/mock/chatData";
 
 export default function GroupsPage() {
   const router = useRouter();
@@ -26,7 +25,7 @@ export default function GroupsPage() {
 
       <List
         grid={{ gutter: 16, column: 3 }}
-        dataSource={mockGroupChats}
+        dataSource={[]}
         renderItem={(group) => (
           <List.Item>
             <Card

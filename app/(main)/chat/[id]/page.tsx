@@ -11,8 +11,8 @@ export default function ChatPage() {
   const chatId = Array.isArray(id) ? id[0] : id;
 
   const getUserInfo = async () => {
-    const userList = localStorage.getItem("userList");
-    const user = JSON.parse(userList)?.find((user) => user.id === chatId);
+    const userList: string | null = localStorage.getItem("userList");
+    const user = userList ? JSON.parse(userList)?.find((user) => user.id === chatId) : null;
 
     setUserInfo(user);
   };

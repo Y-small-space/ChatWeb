@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Avatar, Button, Input, Space } from "antd";
+import { Avatar, Button, Input } from "antd";
 import {
   ArrowLeftOutlined,
-  SendOutlined,
   PictureOutlined,
   TeamOutlined,
   InfoCircleOutlined,
@@ -13,8 +12,6 @@ import {
 import { useRouter } from "next/navigation";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { EmojiPicker } from "./EmojiPicker";
-import { ImagePreview } from "./ImagePreview";
 import { MessageItem } from "./MessageItem";
 import { ChatMessage, ChatUser, GroupChat } from "../../mock/chatData";
 import { Message } from "../../services/types";

@@ -7,7 +7,6 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "noImplicitAny": false,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -22,6 +21,7 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "store/slices/src/*"

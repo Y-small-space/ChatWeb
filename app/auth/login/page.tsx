@@ -24,6 +24,8 @@ export default function LoginPage() {
       if (response.code === 200) {
         // 如果登录成功
         const { token, ...userData } = response.data; // 拿到 token 和用户数据
+        console.log(response);
+
         localStorage.setItem("token", token); // 将 token 存储到 localStorage
         localStorage.setItem("user", JSON.stringify(userData)); // 存储用户信息
         localStorage.setItem("userId", userData?.user_id); // 存储用户信息

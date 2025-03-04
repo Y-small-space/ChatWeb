@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthCheck } from "src/components/Auth/AuthCheck";
 import ChatLayout from "../../src/components/Layout/ChatLayout";
 
 export default function MainLayout({
@@ -7,5 +8,11 @@ export default function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <ChatLayout>{children}</ChatLayout>;
+  console.log("login...");
+
+  return (
+    <ChatLayout>
+      <AuthCheck>{children}</AuthCheck>
+    </ChatLayout>
+  );
 }

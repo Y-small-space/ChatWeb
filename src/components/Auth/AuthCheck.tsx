@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 export function AuthCheck({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
+    console.log(localStorage.getItem("user"));
+
+    if (!localStorage.getItem("user")) {
       router.push("/auth/login");
     }
   }, []);

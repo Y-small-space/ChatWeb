@@ -1,21 +1,23 @@
 "use client";
 
-import { Avatar, Badge, List, Input } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { Avatar, Badge, List } from "antd";
 import { useRouter } from "next/navigation";
 import { useTheme } from "../../../src/contexts/ThemeContext";
-import { useLanguage } from "../../../src/contexts/LanguageContext";
-import {
-  mockPrivateMessages,
-  mockGroupMessages,
-} from "../../../src/mock/chatData";
 import { formatDistance } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import { useEffect } from "react";
 import { wsManager } from "../../../src/services/websocket";
+import { api } from "../../../src/services/api";
 
-const { Search } = Input;
-
+interface ChatMessage {
+  type: string;
+  id: string;
+  online: string;
+  avatar: string;
+  name: string;
+  timestamp: string;
+  memberCount?: string;
+}
 const formatMessageTime = (timestamp: string) => {
   if (!timestamp) return "";
 
@@ -28,34 +30,22 @@ const formatMessageTime = (timestamp: string) => {
     return timestamp; // 如果解析失败，直接返回原始时间字符串
   }
 };
-
 export default function ChatListPage() {
   const router = useRouter();
   const { currentTheme } = useTheme();
-  const { t } = useLanguage();
 
   useEffect(() => {
     wsManager.connect();
+    const getAllLastMessages = async () => {
+      const userId: string | null = localStorage.getItem("userId");
+      const res = await api.chat.getAllLastMessages(userId);
+      console.log("userID", userId);
+    };
+    getAllLastMessages();
   }, []);
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      {/* 搜索框 */}
-      <div style={{ padding: "20px 20px 0" }}>
-        <Search
-          placeholder={t("chat.searchPlaceholder")}
-          prefix={
-            <SearchOutlined
-              style={{ color: currentTheme.colors.secondaryText }}
-            />
-          }
-          style={{
-            borderRadius: "24px",
-            backgroundColor: currentTheme.colors.secondaryBackground,
-          }}
-        />
-      </div>
-
       {/* 聊天列表 */}
       <List
         style={{
@@ -64,7 +54,7 @@ export default function ChatListPage() {
           padding: "20px",
         }}
         dataSource={[]}
-        renderItem={(chat) => (
+        renderItem={(chat: ChatMessage) => (
           <List.Item
             style={{
               padding: "12px",
@@ -84,7 +74,7 @@ export default function ChatListPage() {
             <List.Item.Meta
               avatar={
                 <Badge
-                  dot={chat?.type === "private" && chat?.online}
+                  // dot={chat?.type === "private" && chat?.online}
                   offset={[-6, 28]}
                   color="green"
                 >
@@ -132,14 +122,14 @@ export default function ChatListPage() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {chat?.lastMessage}
+                    {/* {chat?.lastMessage} */}
                   </span>
-                  {chat?.unread > 0 && (
+                  {/* {chat?.unread > 0 && (
                     <Badge
                       count={chat?.unread}
                       style={{ backgroundColor: "#ff2d55" }}
                     />
-                  )}
+                  )} */}
                 </div>
               }
             />

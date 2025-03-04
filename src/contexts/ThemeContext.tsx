@@ -89,7 +89,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useTheme(): Theme {
+export function useTheme() {
   const context = useContext(ThemeContext);
-  return (context as any);
+  if (!context) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
 }

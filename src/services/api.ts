@@ -124,8 +124,6 @@ class ApiService {
         // 处理特定状态码
         switch (response.status) {
           case 401:
-            localStorage.removeItem('token');
-            window.location.href = '/auth/login';
             throw new Error('Unauthorized');
           case 403:
             throw new Error('Permission denied');
@@ -212,6 +210,13 @@ class ApiService {
         method: 'POST',
         body: JSON.stringify(data),
       }),
+
+    getAllLastMessages: ((userId: string) => {
+      this.request('/v1/chat/getAllLastMessages', {
+        method: 'POST',
+        body: JSON.stringify({ userId: String(userId) })
+      })
+    }),
 
     getMessages: (params: {
       receiver_id?: string;
