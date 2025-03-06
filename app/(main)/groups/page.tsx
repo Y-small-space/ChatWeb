@@ -5,6 +5,7 @@ import { TeamOutlined, UserAddOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useTheme } from "../../../src/contexts/ThemeContext";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
+import { mockGroupChats } from "../../../src/mock/chatData";
 
 export default function GroupsPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function GroupsPage() {
 
       <List
         grid={{ gutter: 16, column: 3 }}
-        dataSource={[]}
+        dataSource={mockGroupChats}
         renderItem={(group) => (
           <List.Item>
             <Card
@@ -47,12 +48,7 @@ export default function GroupsPage() {
                 title={group.name}
                 description={
                   <div>
-                    <div>
-                      {t("groups.members").replace(
-                        "{count}",
-                        String(group.members.length)
-                      )}
-                    </div>
+                    <div>{t("groups.members").replace("{count}", "7")}</div>
                     <div style={{ color: currentTheme.colors.secondaryText }}>
                       {group.description}
                     </div>

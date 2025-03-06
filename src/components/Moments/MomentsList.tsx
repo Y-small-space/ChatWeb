@@ -42,7 +42,7 @@ export default function MomentsList() {
 
   // 头部背景图
   const headerStyle = {
-    height: "300px",
+    height: "40%",
     background: `url(https://picsum.photos/1200/400)`,
     backgroundSize: "cover",
     backgroundPosition: "center",
@@ -156,7 +156,6 @@ export default function MomentsList() {
               suffix={
                 <Space>
                   <Button type="text" icon={<PictureOutlined />} />
-                  <Button type="text" icon={<CameraOutlined />} />
                 </Space>
               }
             />

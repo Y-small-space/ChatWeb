@@ -159,12 +159,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             icon={<MessageOutlined />}
             onClick={onReply}
           />
-          <Button
-            type="text"
-            size="small"
-            icon={<ForwardOutlined />}
-            onClick={onForward}
-          />
           {isSelf && (
             <Button
               type="text"

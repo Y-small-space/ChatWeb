@@ -1,23 +1,20 @@
 "use client";
 
-import { Avatar, Badge, List } from "antd";
+import { Avatar, Badge, List, Input } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useTheme } from "../../../src/contexts/ThemeContext";
+import { useLanguage } from "../../../src/contexts/LanguageContext";
+import {
+  mockPrivateMessages,
+  mockGroupChats,
+  mockChatUsers,
+} from "../../../src/mock/chatData";
 import { formatDistance } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
-import { useEffect } from "react";
-import { wsManager } from "../../../src/services/websocket";
-import { api } from "../../../src/services/api";
 
-interface ChatMessage {
-  type: string;
-  id: string;
-  online: string;
-  avatar: string;
-  name: string;
-  timestamp: string;
-  memberCount?: string;
-}
+const { Search } = Input;
+
 const formatMessageTime = (timestamp: string) => {
   if (!timestamp) return "";
 
@@ -30,22 +27,69 @@ const formatMessageTime = (timestamp: string) => {
     return timestamp; // 如果解析失败，直接返回原始时间字符串
   }
 };
+
 export default function ChatListPage() {
   const router = useRouter();
   const { currentTheme } = useTheme();
+  const { t, currentLanguage } = useLanguage();
 
-  useEffect(() => {
-    wsManager.connect();
-    const getAllLastMessages = async () => {
-      const userId: string | null = localStorage.getItem("userId");
-      const res = await api.chat.getAllLastMessages(userId);
-      console.log("userID", userId);
-    };
-    getAllLastMessages();
-  }, []);
+  // 合并私聊和群聊数据
+  const chatList = [
+    ...mockChatUsers.map((user) => {
+      const messages = mockPrivateMessages[user.id] || [];
+      const lastMessage = messages[messages.length - 1];
+      return {
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar,
+        lastMessage: lastMessage?.content || "",
+        timestamp: lastMessage?.created_at || "",
+        unread: messages.filter(
+          (m) => m.status !== "read" && m.sender_id !== "1"
+        ).length,
+        online: user.online,
+        type: "private",
+      };
+    }),
+    ...mockGroupChats.map((group) => {
+      const messages = mockPrivateMessages[group.id] || [];
+      const lastMessage = messages[messages.length - 1];
+      return {
+        id: group.id,
+        name: group.name,
+        avatar: group.avatar,
+        lastMessage: lastMessage?.content || "",
+        timestamp: lastMessage?.created_at || "",
+        unread: messages.filter(
+          (m) => m.status !== "read" && m.sender_id !== "1"
+        ).length,
+        memberCount: group.members.length,
+        type: "group",
+      };
+    }),
+  ].sort((a, b) => {
+    if (!a.timestamp || !b.timestamp) return 0;
+    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+  });
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {/* 搜索框 */}
+      <div style={{ padding: "20px 20px 0" }}>
+        {/* <Search
+          placeholder={t("chat.searchPlaceholder")}
+          prefix={
+            <SearchOutlined
+              style={{ color: currentTheme.colors.secondaryText }}
+            />
+          }
+          style={{
+            borderRadius: "24px",
+            backgroundColor: currentTheme.colors.secondaryBackground,
+          }}
+        /> */}
+      </div>
+
       {/* 聊天列表 */}
       <List
         style={{
@@ -53,8 +97,8 @@ export default function ChatListPage() {
           overflow: "auto",
           padding: "20px",
         }}
-        dataSource={[]}
-        renderItem={(chat: ChatMessage) => (
+        dataSource={chatList}
+        renderItem={(chat) => (
           <List.Item
             style={{
               padding: "12px",
@@ -67,18 +111,18 @@ export default function ChatListPage() {
             }}
             onClick={() =>
               router.push(
-                `/chat/${chat?.type === "group" ? "group/" : ""}${chat?.id}`
+                `/chat/${chat.type === "group" ? "group/" : ""}${chat.id}`
               )
             }
           >
             <List.Item.Meta
               avatar={
                 <Badge
-                  // dot={chat?.type === "private" && chat?.online}
+                  dot={chat.type === "private" && chat.online}
                   offset={[-6, 28]}
                   color="green"
                 >
-                  <Avatar src={chat?.avatar} size={48} />
+                  <Avatar src={chat.avatar} size={48} />
                 </Badge>
               }
               title={
@@ -86,8 +130,8 @@ export default function ChatListPage() {
                   style={{ display: "flex", justifyContent: "space-between" }}
                 >
                   <span style={{ color: currentTheme.colors.text }}>
-                    {chat?.name}
-                    {chat?.type === "group" && (
+                    {chat.name}
+                    {chat.type === "group" && (
                       <span
                         style={{
                           fontSize: "12px",
@@ -95,7 +139,7 @@ export default function ChatListPage() {
                           marginLeft: "8px",
                         }}
                       >
-                        ({chat?.memberCount})
+                        ({chat.memberCount})
                       </span>
                     )}
                   </span>
@@ -105,7 +149,7 @@ export default function ChatListPage() {
                       color: currentTheme.colors.secondaryText,
                     }}
                   >
-                    {formatMessageTime(chat?.timestamp)}
+                    {formatMessageTime(chat.timestamp)}
                   </span>
                 </div>
               }
@@ -122,14 +166,14 @@ export default function ChatListPage() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {/* {chat?.lastMessage} */}
+                    {chat.lastMessage}
                   </span>
-                  {/* {chat?.unread > 0 && (
+                  {chat.unread > 0 && (
                     <Badge
-                      count={chat?.unread}
+                      count={chat.unread}
                       style={{ backgroundColor: "#ff2d55" }}
                     />
-                  )} */}
+                  )}
                 </div>
               }
             />

@@ -1,13 +1,12 @@
 "use client";
 
 import { List, Avatar, Button, Badge, Tabs, Input } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { UserAddOutlined, SearchOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useTheme } from "../../../src/contexts/ThemeContext";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
 import { mockChatUsers } from "../../../src/mock/chatData";
-import { useEffect, useState } from "react";
-import { api } from "../../../src/services/api";
+import { useState } from "react";
 
 const { Search } = Input;
 
@@ -19,10 +18,8 @@ export default function FriendsPage() {
   const [searchValue, setSearchValue] = useState("");
   const [searchUser, setSearchUser] = useState([]);
   const [userList, setUserList] = useState([]);
-
-  useEffect(() => {
-    getFriends();
-  }, []);
+  const onlineUsers = mockChatUsers.filter((user) => user.online);
+  const offlineUsers = mockChatUsers.filter((user) => !user.online);
 
   const renderUserList = (users: typeof mockChatUsers) => (
     <List
@@ -37,9 +34,7 @@ export default function FriendsPage() {
             border: "none",
             marginBottom: "8px",
           }}
-          onClick={() => {
-            router.push(`/friends/details/${user.username}`);
-          }}
+          onClick={() => router.push(`/chat/${user.id}`)}
         >
           <List.Item.Meta
             avatar={
@@ -47,7 +42,7 @@ export default function FriendsPage() {
                 <Avatar src={user.avatar} size={48} />
               </Badge>
             }
-            title={user.username}
+            title={user.name}
             description={
               <div style={{ color: currentTheme.colors.secondaryText }}>
                 {user.online
@@ -125,32 +120,19 @@ export default function FriendsPage() {
     <div style={{ padding: "20px" }}>
       <div
         style={{
-          marginTop: "10px",
-          marginBottom: "10px",
+          marginBottom: "20px",
           display: "flex",
           gap: "16px",
           justifyContent: "space-between",
         }}
-      >
-        {disable && (
-          <Search
-            placeholder={t("friends.search")}
-            style={{ maxWidth: "300px" }}
-            prefix={
-              <SearchOutlined
-                style={{ color: currentTheme.colors.secondaryText }}
-              />
-            }
-          />
-        )}
-      </div>
+      ></div>
 
       <Tabs
         items={[
           {
             key: "all",
             label: t("friends.all"),
-            children: renderUserList(userList),
+            children: renderUserList(mockChatUsers),
           },
           {
             key: "online",
@@ -158,7 +140,7 @@ export default function FriendsPage() {
               <span>
                 {t("friends.online")}
                 <Badge
-                  count={[].length}
+                  count={onlineUsers.length}
                   style={{
                     marginLeft: "8px",
                     backgroundColor: currentTheme.colors.success,
@@ -166,12 +148,12 @@ export default function FriendsPage() {
                 />
               </span>
             ),
-            children: renderUserList([]),
+            children: renderUserList(onlineUsers),
           },
           {
             key: "offline",
             label: t("friends.offline"),
-            children: renderUserList([]),
+            children: renderUserList(offlineUsers),
           },
           {
             key: "addfriends",
@@ -179,13 +161,6 @@ export default function FriendsPage() {
             children: renderAddFriends(),
           },
         ]}
-        onTabClick={(e) => {
-          if (e === "all") {
-            setDisable(true);
-            return;
-          }
-          setDisable(false);
-        }}
       />
     </div>
   );
