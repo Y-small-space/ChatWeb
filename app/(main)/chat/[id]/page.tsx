@@ -1,18 +1,30 @@
 "use client";
-
 import { useParams } from "next/navigation";
 import ChatWindow from "../../../../src/components/Chat/ChatWindow";
-import { getChatInfo } from "../../../../src/mock/chatData";
 import { useEffect, useState } from "react";
+
+interface user {
+  created_at: string;
+  email: string;
+  id: string;
+  phone: string;
+  updated_at: string;
+  username: string;
+}
 
 export default function ChatPage() {
   const { id } = useParams();
   const [userInfo, setUserInfo] = useState();
-  const chatId = Array.isArray(id) ? id[0] : id;
 
   const getUserInfo = async () => {
     const userList: string | null = localStorage.getItem("userList");
-    const user = userList ? JSON.parse(userList)?.find((user) => user.id === chatId) : null;
+    console.log(userList);
+
+    const user = userList
+      ? JSON.parse(userList)?.find(
+          (user: user) => String(user.id) === String(id)
+        )
+      : null;
 
     setUserInfo(user);
   };
@@ -21,5 +33,5 @@ export default function ChatPage() {
     getUserInfo();
   }, []);
 
-  return <ChatWindow type="private" id={chatId} chatInfo={userInfo} />;
+  return <ChatWindow type="user" id={String(id)} chatInfo={userInfo} />;
 }

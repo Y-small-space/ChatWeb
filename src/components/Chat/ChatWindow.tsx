@@ -13,18 +13,37 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { MessageItem } from "./MessageItem";
-import { ChatMessage, ChatUser, GroupChat } from "../../mock/chatData";
 import { Message } from "../../services/types";
 import { wsManager } from "../../services/websocket";
 
-interface ChatWindowProps {
-  type: "private" | "group";
+interface ChatMessage {
   id: string;
-  messages: ChatMessage[];
-  chatInfo: ChatUser | GroupChat;
+  type: string;
+  content: string;
+  sender_id: string; // 当前用户 ID
+  receiver_id?: string;
+  // group_id?: string;
+  created_at: string;
+  sender: string;
+  receiver?: string;
+  status: string;
 }
 
-export const ChatWindow = ({ type, chatInfo, id }) => {
+interface chantWindowProps {
+  type: string;
+  chatInfo: user;
+  id: string;
+}
+interface user {
+  created_at: string;
+  email: string;
+  id: string;
+  phone: string;
+  updated_at: string;
+  username: string;
+}
+
+export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   const [messages, setMessages] = useState();
   const { currentTheme } = useTheme();
   const { t } = useLanguage();
@@ -37,16 +56,23 @@ export const ChatWindow = ({ type, chatInfo, id }) => {
 
   // 处理发送消息
   const handleSend = (content: string) => {
+    const user = localStorage.getItem("user")
+      ? JSON.parse(localStorage.getItem("user") as string)
+      : null;
     const newMessage: ChatMessage = {
       id: `m${Date.now()}`,
       type: "text",
       content,
       sender_id: String(localStorage.getItem("userId")), // 当前用户 ID
-      receiver_id: type === "private" ? id : undefined,
+      receiver_id: id,
       // group_id: type === "group" ? id : undefined,
       created_at: new Date().toISOString(),
+      sender: String(user.username),
+      receiver: chatInfo.username,
       status: "sent",
     };
+    console.log("newMessage", newMessage);
+
     wsManager.sendMessage(newMessage);
   };
 

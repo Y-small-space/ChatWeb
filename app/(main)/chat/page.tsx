@@ -1,59 +1,55 @@
 "use client";
 
+import { useEffect, useId, useState } from "react";
 import { Avatar, Badge, List } from "antd";
 import { useRouter } from "next/navigation";
 import { useTheme } from "../../../src/contexts/ThemeContext";
-import { formatDistance } from "date-fns";
-import { zhCN, enUS } from "date-fns/locale";
-import { useEffect } from "react";
 import { wsManager } from "../../../src/services/websocket";
 import { api } from "../../../src/services/api";
 
 interface ChatMessage {
-  type: string;
+  content: string;
+  created_at: string;
+  group_id: string;
   id: string;
-  online: string;
-  avatar: string;
-  name: string;
-  timestamp: string;
-  memberCount?: string;
+  read_by: null;
+  receiver_id: string;
+  receiverer: string;
+  sender: string;
+  sender_id: string;
+  status: string;
+  type: string;
+  updated_at: string;
 }
-const formatMessageTime = (timestamp: string) => {
-  if (!timestamp) return "";
-
-  try {
-    return formatDistance(new Date(timestamp), new Date(), {
-      addSuffix: true,
-      locale: currentLanguage === "zh" ? zhCN : enUS,
-    });
-  } catch (error) {
-    return timestamp; // 如果解析失败，直接返回原始时间字符串
-  }
-};
 export default function ChatListPage() {
   const router = useRouter();
   const { currentTheme } = useTheme();
+  const [messages, setMessages] = useState<ChatMessage[]>();
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId: string | null = localStorage.getItem("userId");
 
   useEffect(() => {
     wsManager.connect();
     const getAllLastMessages = async () => {
-      const userId: string | null = localStorage.getItem("userId");
-      const res = await api.chat.getAllLastMessages(userId);
-      console.log("userID", userId);
+      const { messages } = await api.chat.getAllLastMessages(String(userId));
+      console.log(messages);
+
+      if (messages) {
+        setMessages(messages);
+      }
     };
     getAllLastMessages();
   }, []);
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      {/* 聊天列表 */}
       <List
         style={{
           flex: 1,
           overflow: "auto",
           padding: "20px",
         }}
-        dataSource={[]}
+        dataSource={messages}
         renderItem={(chat: ChatMessage) => (
           <List.Item
             style={{
@@ -67,7 +63,11 @@ export default function ChatListPage() {
             }}
             onClick={() =>
               router.push(
-                `/chat/${chat?.type === "group" ? "group/" : ""}${chat?.id}`
+                `/chat/${chat?.type === "group" ? "group/" : ""}${
+                  chat?.sender_id === userId
+                    ? chat?.receiver_id
+                    : chat?.sender_id
+                }`
               )
             }
           >
@@ -78,7 +78,7 @@ export default function ChatListPage() {
                   offset={[-6, 28]}
                   color="green"
                 >
-                  <Avatar src={chat?.avatar} size={48} />
+                  <Avatar size={48} />
                 </Badge>
               }
               title={
@@ -86,18 +86,9 @@ export default function ChatListPage() {
                   style={{ display: "flex", justifyContent: "space-between" }}
                 >
                   <span style={{ color: currentTheme.colors.text }}>
-                    {chat?.name}
-                    {chat?.type === "group" && (
-                      <span
-                        style={{
-                          fontSize: "12px",
-                          color: currentTheme.colors.secondaryText,
-                          marginLeft: "8px",
-                        }}
-                      >
-                        ({chat?.memberCount})
-                      </span>
-                    )}
+                    {chat?.sender === user.username
+                      ? chat?.receiverer
+                      : chat?.sender}
                   </span>
                   <span
                     style={{
@@ -105,7 +96,7 @@ export default function ChatListPage() {
                       color: currentTheme.colors.secondaryText,
                     }}
                   >
-                    {formatMessageTime(chat?.timestamp)}
+                    {new Date(chat?.created_at).toLocaleString()}
                   </span>
                 </div>
               }
@@ -122,7 +113,7 @@ export default function ChatListPage() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {/* {chat?.lastMessage} */}
+                    {chat?.content}
                   </span>
                   {/* {chat?.unread > 0 && (
                     <Badge

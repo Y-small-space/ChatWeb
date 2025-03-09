@@ -23,7 +23,7 @@ export default function GroupsPage() {
         </Button>
       </div>
 
-      <List
+      {/* <List
         grid={{ gutter: 16, column: 3 }}
         dataSource={[]}
         renderItem={(group) => (
@@ -62,7 +62,7 @@ export default function GroupsPage() {
             </Card>
           </List.Item>
         )}
-      />
+      /> */}
     </div>
   );
 }

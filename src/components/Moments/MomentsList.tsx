@@ -21,7 +21,6 @@ import {
 } from "@ant-design/icons";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { mockMoments } from "../../mock/data";
 import { formatDistance } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,7 +30,7 @@ const { TextArea } = Input;
 export default function MomentsList() {
   const { currentTheme } = useTheme();
   const { t, currentLanguage } = useLanguage();
-  const [moments, setMoments] = useState(mockMoments);
+  const [moments, setMoments] = useState([]);
   const [commentInput, setCommentInput] = useState<{ [key: string]: string }>(
     {}
   );

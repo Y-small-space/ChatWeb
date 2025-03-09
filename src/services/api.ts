@@ -211,12 +211,12 @@ class ApiService {
         body: JSON.stringify(data),
       }),
 
-    getAllLastMessages: ((userId: string) => {
+    getAllLastMessages: ((userId: string) =>
       this.request('/v1/chat/getAllLastMessages', {
         method: 'POST',
         body: JSON.stringify({ userId: String(userId) })
       })
-    }),
+    ),
 
     getMessages: (params: {
       receiver_id?: string;
