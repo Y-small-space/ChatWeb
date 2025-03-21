@@ -1,11 +1,10 @@
 "use client";
 
-import { List, Avatar, Button, Badge, Tabs, Input } from "antd";
+import { List, Avatar, Badge, Tabs, Input } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useTheme } from "../../../src/contexts/ThemeContext";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
-import { mockChatUsers } from "../../../src/mock/chatData";
 import { useEffect, useState } from "react";
 import { api } from "../../../src/services/api";
 
@@ -24,7 +23,7 @@ export default function FriendsPage() {
     getFriends();
   }, []);
 
-  const renderUserList = (users: typeof mockChatUsers) => (
+  const renderUserList = (users) => (
     <List
       dataSource={users}
       renderItem={(user) => (
@@ -44,17 +43,18 @@ export default function FriendsPage() {
           <List.Item.Meta
             avatar={
               <Badge dot={user.online} offset={[-6, 28]} color="green">
-                <Avatar src={user.avatar} size={48} />
+                <Avatar src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} size={48} />
               </Badge>
             }
             title={user.username}
             description={
               <div style={{ color: currentTheme.colors.secondaryText }}>
-                {user.online
+                {/* {user.online
                   ? t("friends.online")
                   : t("friends.lastSeen", {
-                      time: new Date(user.last_seen || "").toLocaleString(),
-                    })}
+                    time: new Date(user.updated_at || "").toLocaleString(),
+                  })} */}
+                {t("friends.lastSeen") + new Date(user.updated_at || "").toLocaleString()}
               </div>
             }
           />

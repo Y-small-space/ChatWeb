@@ -1,8 +1,10 @@
-class WebSocketManager {
+export class WebSocketManager {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectTimeout = 1000;
+
+  public onMessage: ((data: any) => void) | null = null; // 允许外部监听 WebSocket 消息
 
   connect() {
     const userID = localStorage.getItem('userId');
@@ -15,8 +17,11 @@ class WebSocketManager {
 
     this.ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log(data);
+      console.log("收到消息:", data);
 
+      if (this.onMessage) {
+        this.onMessage(data); // 触发回调
+      }
     };
 
     this.ws.onclose = () => {
@@ -28,32 +33,6 @@ class WebSocketManager {
     };
   }
 
-  // private handleWebSocketMessage(data: any) {
-  //   console.log(data);
-
-  //   switch (data.type) {
-  //     case 'message':
-  //       store.dispatch(addMessage(data.payload));
-  //       break;
-  //     case 'messageStatus':
-  //       store.dispatch(updateMessageStatus(data.payload));
-  //       break;
-  //     case 'typing':
-  //       store.dispatch(setTypingStatus({
-  //         chatId: data.payload.chatId,
-  //         userId: data.payload.userId,
-  //         isTyping: data.payload.isTyping,
-  //       }));
-  //       break;
-  //     case 'userStatus':
-  //       store.dispatch(updateUserStatus({
-  //         userId: data.payload.userId,
-  //         status: data.payload.status,
-  //       }));
-  //       break;
-  //   }
-  // }
-
   private handleWebSocketClose() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       setTimeout(() => {
@@ -64,30 +43,10 @@ class WebSocketManager {
   }
 
   sendMessage(message: any) {
-
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
-      console.log(message);
+      console.log("发送消息:", message);
     }
-  }
-
-  sendTypingStatus(chatId: string, isTyping: boolean) {
-    this.sendMessage({
-      type: 'typing',
-      payload: {
-        chatId,
-        isTyping,
-      },
-    });
-  }
-
-  markMessagesAsRead(messageIds: string[]) {
-    this.sendMessage({
-      type: 'markRead',
-      payload: {
-        messageIds,
-      },
-    });
   }
 
   disconnect() {
@@ -98,4 +57,4 @@ class WebSocketManager {
   }
 }
 
-export const wsManager = new WebSocketManager(); 
+export const wsManager = new WebSocketManager();

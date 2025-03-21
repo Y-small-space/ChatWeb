@@ -1,15 +1,28 @@
 "use client";
 
-import { List, Avatar, Button, Card } from "antd";
+import { Avatar, Button, Card, List } from "antd";
 import { TeamOutlined, UserAddOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import { useTheme } from "../../../src/contexts/ThemeContext";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
+import { api } from 'src/services/api';
+import { useEffect, useState } from 'react';
+import { useTheme } from 'src/contexts/ThemeContext';
 
 export default function GroupsPage() {
   const router = useRouter();
   const { currentTheme } = useTheme();
   const { t } = useLanguage();
+  const [groupList, setGroupList] = useState();
+
+  const getGroupList = async () => {
+    const res = await api.groups.getGroups();
+    console.log(res.groups);
+    setGroupList(res.groups)
+  }
+
+  useEffect(() => {
+    getGroupList();
+  }, [])
 
   return (
     <div style={{ padding: "20px" }}>
@@ -23,9 +36,9 @@ export default function GroupsPage() {
         </Button>
       </div>
 
-      {/* <List
+      <List
         grid={{ gutter: 16, column: 3 }}
-        dataSource={[]}
+        dataSource={groupList || []}
         renderItem={(group) => (
           <List.Item>
             <Card
@@ -62,7 +75,7 @@ export default function GroupsPage() {
             </Card>
           </List.Item>
         )}
-      /> */}
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import { MessageItem } from './MessageItem';
 import { Message } from '../../services/types';
 import { wsManager } from '../../services/websocket';
 import { api } from 'src/services/api';
+import { useWebSocket } from 'src/contexts/WebSocketContext';
 
 interface ChatMessage {
   id: string;
@@ -49,8 +50,8 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   const { t } = useLanguage();
   const router = useRouter();
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
-
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const ws = useWebSocket();
   const userId = localStorage.getItem("userId")
   console.log(chatInfo, id);
 
@@ -73,7 +74,8 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
       receiver: chatInfo.username,
       status: 'sent',
     };
-    wsManager.sendMessage(newMessage);
+    // wsManager.sendMessage(newMessage);
+    ws.sendMessage(newMessage)
     setMessages([...messages, newMessage]);
   };
 
@@ -83,16 +85,26 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
     if (res) {
       setMessages(res.messages);
     }
-
   }
 
+  const getMessageCurrent = () => {
+    if (!ws) return;
+    const handleMessage = (data: any) => {
+      console.log("收到 WebSocket 消息:", data);
+      setMessages((prev) => [...prev, data]);
+    };
+
+    ws.onMessage = handleMessage;
+  }
   useEffect(() => {
     getMessage();
+    getMessageCurrent();
   }, []);
 
   useEffect(() => {
+    const scrollTop = chatContainerRef.current?.scrollTop
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({ top: 1000 });
+      chatContainerRef.current.scrollTo({ top: scrollTop });
       console.log(chatContainerRef.current?.scrollTop);
     }
   }, [messages])

@@ -4,6 +4,7 @@ import { AuthCheck } from "src/components/Auth/AuthCheck";
 import ChatLayout from "../../src/components/Layout/ChatLayout";
 import { useEffect } from 'react';
 import { wsManager } from 'src/services/websocket';
+import { WebSocketProvider } from 'src/contexts/WebSocketContext';
 
 export default function MainLayout({
   children,
@@ -16,8 +17,10 @@ export default function MainLayout({
   }, [])
 
   return (
-    <ChatLayout>
-      <AuthCheck>{children}</AuthCheck>
-    </ChatLayout>
+    <WebSocketProvider>
+      <ChatLayout>
+        <AuthCheck>{children}</AuthCheck>
+      </ChatLayout>
+    </WebSocketProvider>
   );
 }

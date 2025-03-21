@@ -22,8 +22,8 @@ export default function ChatPage() {
 
     const user = userList
       ? JSON.parse(userList)?.find(
-          (user: user) => String(user.id) === String(id)
-        )
+        (user: user) => String(user.id) === String(id)
+      )
       : null;
 
     setUserInfo(user);

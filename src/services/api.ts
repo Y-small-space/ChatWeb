@@ -258,10 +258,10 @@ class ApiService {
 
   groups = {
     getGroups: () =>
-      this.request<Group[]>('/groups'),
+      this.request<Group[]>('/v1/groups'),
 
     createGroup: (data: { name: string; description?: string }) =>
-      this.request<Group>('/groups', {
+      this.request<Group>('/v1/group', {
         method: 'POST',
         body: JSON.stringify(data),
       }),

@@ -1,33 +1,23 @@
 "use client";
 
 import React from "react";
-import { Form, Input, Button, Card, Upload, message } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
-import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
-import { createGroup } from "../../../../src/store/slices/groupSlice";
+import { Form, Input, Button, Card, message } from "antd";
 import { useTheme } from "../../../../src/contexts/ThemeContext";
 import { useLanguage } from "../../../../src/contexts/LanguageContext";
+import { api } from 'src/services/api';
+import { useRouter } from "next/navigation";
 
 export default function CreateGroupPage() {
-  const router = useRouter();
-  const dispatch = useDispatch();
   const { currentTheme } = useTheme();
   const { t } = useLanguage();
   const [form] = Form.useForm();
+  const router = useRouter();
 
-  const handleSubmit = async (values: {
-    name: string;
-    description?: string;
-    avatar?: string;
-  }) => {
-    try {
-      await dispatch(createGroup(values)).unwrap();
-      message.success(t("groups.createSuccess"));
-      router.push("/groups");
-    } catch (error) {
-      message.error(t("groups.createError"));
-    }
+  const handleSubmit = async (value) => {
+    console.log(value);
+    api.groups.createGroup(value)
+    message.success("创建成功！");
+    router.push("/groups")
   };
 
   return (
@@ -49,31 +39,12 @@ export default function CreateGroupPage() {
         >
           {t("groups.createTitle")}
         </h1>
-
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
           requiredMark={false}
         >
-          <Form.Item
-            name="avatar"
-            style={{ textAlign: "center", marginBottom: "24px" }}
-          >
-            <Upload
-              name="avatar"
-              listType="picture-card"
-              showUploadList={false}
-              action="/api/upload"
-              maxCount={1}
-            >
-              <div>
-                <PlusOutlined />
-                <div style={{ marginTop: 8 }}>上传群头像</div>
-              </div>
-            </Upload>
-          </Form.Item>
-
           <Form.Item
             name="name"
             label={t("groups.groupName")}
