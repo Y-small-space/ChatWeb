@@ -1,5 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { api } from "../../services/api";
+import { createSlice } from "@reduxjs/toolkit";
 
 export interface Message {
   id: string;
@@ -41,36 +40,6 @@ const initialState: ChatState = {
   typingUsers: {},
   userStatuses: {},
 };
-
-export const fetchMessages = createAsyncThunk(
-  "chat/fetchMessages",
-  async (params: {
-    receiver_id?: string;
-    group_id?: string;
-    before?: string;
-    limit?: number;
-  }) => {
-    const response = await api.chat.getMessages(params);
-    if (response.code === 200) {
-      return {
-        messages: response.data,
-        chatId: params.receiver_id || params.group_id,
-      };
-    }
-    throw new Error(response.message);
-  }
-);
-
-export const recallMessage = createAsyncThunk(
-  "chat/recallMessage",
-  async ({ messageId }: { messageId: string }) => {
-    const response = await api.chat.recallMessage(messageId);
-    if (response.code === 200) {
-      return messageId;
-    }
-    throw new Error(response.message);
-  }
-);
 
 const chatSlice = createSlice({
   name: "chat",
@@ -118,25 +87,6 @@ const chatSlice = createSlice({
         state.typingUsers[chatId].clear();
       }
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchMessages.fulfilled, (state, action) => {
-        const { messages, chatId } = action.payload;
-        if (!state.messages[chatId]) {
-          state.messages[chatId] = [];
-        }
-        state.messages[chatId] = [...messages, ...state.messages[chatId]];
-      })
-      .addCase(recallMessage.fulfilled, (state, action) => {
-        const messageId = action.payload;
-        Object.keys(state.messages).forEach((chatId) => {
-          const message = state.messages[chatId].find((m) => m.id === messageId);
-          if (message) {
-            message.recalled = true;
-          }
-        });
-      });
   },
 });
 

@@ -14,17 +14,8 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { formatDistance } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import { useLanguage } from "../../contexts/LanguageContext";
-import type { ChatMessage } from "../../mock/chatData";
 
-interface MessageItemProps {
-  message: ChatMessage;
-  isSelf: boolean;
-  onReply: () => void;
-  onDelete?: () => void;
-  onForward?: () => void;
-}
-
-export const MessageItem: React.FC<MessageItemProps> = ({
+export const MessageItem = ({
   message,
   isSelf,
   onReply,
@@ -32,7 +23,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   onForward,
 }) => {
   const { currentTheme } = useTheme();
-  const { t, currentLanguage } = useLanguage();
+  const { currentLanguage } = useLanguage();
   const [showActions, setShowActions] = useState(false);
 
   const getStatusIcon = () => {
@@ -104,7 +95,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <Avatar size={40} src={message.sender?.avatar} />
+      <Avatar size={40} src={message.sender?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} />
       <div
         style={{
           maxWidth: "70%",
@@ -178,4 +169,4 @@ export const MessageItem: React.FC<MessageItemProps> = ({
       )}
     </div>
   );
-};
+}

@@ -217,14 +217,12 @@ class ApiService {
         body: JSON.stringify({ userId: String(userId) })
       })
     ),
-
-    getMessages: (params: {
-      receiver_id?: string;
-      group_id?: string;
-      limit?: number;
-      offset?: number;
-    }) =>
-      this.request('/chat/messages?' + new URLSearchParams(params)),
+    getMessagesById: ((userId: string, otherId: string) =>
+      this.request('/v1/chat/getMessagesById', {
+        method: 'POST',
+        body: JSON.stringify({ userId: String(userId), otherId: String(otherId) })
+      })
+    ),
 
     recallMessage: (messageId: string) =>
       this.request(`/chat/messages/${messageId}/recall`, {

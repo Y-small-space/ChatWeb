@@ -1,11 +1,3 @@
-import { store } from '../store';
-import {
-  addMessage,
-  updateMessageStatus,
-  setTypingStatus,
-  updateUserStatus,
-} from '../store/slices/chatSlice';
-
 class WebSocketManager {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
@@ -25,7 +17,6 @@ class WebSocketManager {
       const data = JSON.parse(event.data);
       console.log(data);
 
-      this.handleWebSocketMessage(data);
     };
 
     this.ws.onclose = () => {
@@ -37,31 +28,31 @@ class WebSocketManager {
     };
   }
 
-  private handleWebSocketMessage(data: any) {
-    console.log(data);
+  // private handleWebSocketMessage(data: any) {
+  //   console.log(data);
 
-    switch (data.type) {
-      case 'message':
-        store.dispatch(addMessage(data.payload));
-        break;
-      case 'messageStatus':
-        store.dispatch(updateMessageStatus(data.payload));
-        break;
-      case 'typing':
-        store.dispatch(setTypingStatus({
-          chatId: data.payload.chatId,
-          userId: data.payload.userId,
-          isTyping: data.payload.isTyping,
-        }));
-        break;
-      case 'userStatus':
-        store.dispatch(updateUserStatus({
-          userId: data.payload.userId,
-          status: data.payload.status,
-        }));
-        break;
-    }
-  }
+  //   switch (data.type) {
+  //     case 'message':
+  //       store.dispatch(addMessage(data.payload));
+  //       break;
+  //     case 'messageStatus':
+  //       store.dispatch(updateMessageStatus(data.payload));
+  //       break;
+  //     case 'typing':
+  //       store.dispatch(setTypingStatus({
+  //         chatId: data.payload.chatId,
+  //         userId: data.payload.userId,
+  //         isTyping: data.payload.isTyping,
+  //       }));
+  //       break;
+  //     case 'userStatus':
+  //       store.dispatch(updateUserStatus({
+  //         userId: data.payload.userId,
+  //         status: data.payload.status,
+  //       }));
+  //       break;
+  //   }
+  // }
 
   private handleWebSocketClose() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {

@@ -1,7 +1,7 @@
-"use client";
-import { useParams } from "next/navigation";
-import ChatWindow from "../../../../src/components/Chat/ChatWindow";
-import { useEffect, useState } from "react";
+'use client';
+import { useParams } from 'next/navigation';
+import ChatWindow from '../../../../src/components/Chat/ChatWindow';
+import { useEffect, useState } from 'react';
 
 interface user {
   created_at: string;
@@ -14,10 +14,10 @@ interface user {
 
 export default function ChatPage() {
   const { id } = useParams();
-  const [userInfo, setUserInfo] = useState();
+  const [userInfo, setUserInfo] = useState<user>();
 
   const getUserInfo = async () => {
-    const userList: string | null = localStorage.getItem("userList");
+    const userList: string | null = localStorage.getItem('userList');
     console.log(userList);
 
     const user = userList
@@ -33,5 +33,7 @@ export default function ChatPage() {
     getUserInfo();
   }, []);
 
-  return <ChatWindow type="user" id={String(id)} chatInfo={userInfo} />;
+  return (
+    userInfo && <ChatWindow type='user' id={String(id)} chatInfo={userInfo} />
+  );
 }
