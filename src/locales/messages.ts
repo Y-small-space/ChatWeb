@@ -1,5 +1,3 @@
-import { log } from "console";
-
 export const messages = {
   zh: {
     menu: {
@@ -76,13 +74,17 @@ export const messages = {
       sendMessage: "发消息"
     },
     groups: {
+      group: "群组",
+      groupInformation: "群组信息",
+      update: "更新",
+      goToChat: "聊天",
       title: "我的群组",
       members: "位成员",
       create: "创建群组",
       createTitle: "创建新群组",
-      groupName: "群组名称",
+      groupName: "名称",
       groupNameRequired: "请输入群组名称",
-      groupDescription: "群组描述",
+      groupDescription: "描述",
       groupDescriptionPlaceholder: "请输入群组描述（选填）",
       createSuccess: "群组创建成功",
       createError: "创建群组失败",
@@ -100,6 +102,7 @@ export const messages = {
       settings: "群组设置",
       announcement: "群公告",
       description: "群描述",
+      expand: "展开"
     },
     settings: {
       title: "个人设置",
@@ -254,9 +257,14 @@ export const messages = {
       remove: "Remove Friend",
       block: "Block",
       unblock: "Unblock",
-      sendMessage: "Chat"
+      sendMessage: "Chat",
+      expand: "expand"
     },
     groups: {
+      group: "Group",
+      groupInformation: "Group Information",
+      update: "UpDate",
+      goToChat: "ToChat",
       title: "My Groups",
       members: "members",
       create: "Create Group",
@@ -354,7 +362,7 @@ export const messages = {
       send: "发送",
       commentPlaceholder: "写下你的评论...",
       commentSuccess: "评论成功",
-      delete: "删除",
+      delete: "Delete",
       deleteConfirm: "确定要删除这条动态吗？",
       deleteSuccess: "删除成功",
       createMoment: "发布动态",

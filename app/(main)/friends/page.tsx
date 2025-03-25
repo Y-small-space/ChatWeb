@@ -122,7 +122,7 @@ export default function FriendsPage() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px", overflow: "auto" }}>
       <div
         style={{
           marginTop: "10px",

@@ -197,6 +197,10 @@ class ApiService {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
+    getUsersByIDs: (userIds) => this.request('/v1/user/getUsersByIDs', {
+      method: 'POST',
+      body: JSON.stringify({ user_ids: userIds })
+    })
   };
 
   chat = {
@@ -267,26 +271,26 @@ class ApiService {
       }),
 
     getGroupDetails: (groupId: string) =>
-      this.request<Group>(`/groups/${groupId}`),
+      this.request<Group>(`/v1/group/${groupId}`),
 
     updateGroup: (groupId: string, data: { name?: string; description?: string }) =>
-      this.request<Group>(`/groups/${groupId}`, {
+      this.request<Group>(`/v1/group/${groupId}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
 
     deleteGroup: (groupId: string) =>
-      this.request(`/groups/${groupId}`, {
+      this.request(`/v1/groups/${groupId}`, {
         method: 'DELETE',
       }),
 
     getMembers: (groupId: string) =>
       this.request(`/groups/${groupId}/members`),
 
-    addMember: (groupId: string, userId: string) =>
-      this.request(`/groups/${groupId}/members`, {
+    addMember: (groupId: string, userId: string[]) =>
+      this.request(`/v1/group/join`, {
         method: 'POST',
-        body: JSON.stringify({ user_id: userId }),
+        body: JSON.stringify({ user_ids: userId, group_id: groupId }),
       }),
 
     removeMember: (groupId: string, userId: string) =>
@@ -330,9 +334,12 @@ class ApiService {
           created_at: string;
         };
       }>(`/v1/user/search?query=${encodeURIComponent(query)}`),
-  };
 
-  // 其他 API 方法...
+    deleteFriend: (userid, friendId) => this.request('/v1/friendship/delete', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userid, friend_id: friendId })
+    })
+  };
 }
 
 export const api = new ApiService(); 

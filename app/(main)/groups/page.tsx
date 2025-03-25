@@ -43,7 +43,7 @@ export default function GroupsPage() {
           <List.Item>
             <Card
               hoverable
-              onClick={() => router.push(`/chat/group/${group.id}`)}
+              onClick={() => router.push(`/groups/${group.id}`)}
               style={{
                 background: currentTheme.colors.background,
                 borderColor: currentTheme.colors.border,
@@ -59,16 +59,8 @@ export default function GroupsPage() {
                 }
                 title={group.name}
                 description={
-                  <div>
-                    <div>
-                      {t("groups.members").replace(
-                        "{count}",
-                        String(group.members.length)
-                      )}
-                    </div>
-                    <div style={{ color: currentTheme.colors.secondaryText }}>
-                      {group.description}
-                    </div>
+                  <div style={{ color: currentTheme.colors.secondaryText }}>
+                    {group.description}
                   </div>
                 }
               />

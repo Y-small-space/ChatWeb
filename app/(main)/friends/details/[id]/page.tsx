@@ -2,11 +2,10 @@
 
 import { useParams, useRouter } from "next/navigation";
 
-import { Avatar, Card, Divider, Switch, Button, Space, message } from "antd";
+import { Avatar, Card, Divider, Button, Space, message } from "antd";
 import {
   UserOutlined,
   GlobalOutlined,
-  EditOutlined,
   PhoneOutlined,
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
@@ -20,6 +19,7 @@ export default function FriendsDetails() {
   const { currentTheme } = useTheme();
   const [user, setUser] = useState();
   const router = useRouter();
+  const userId = localStorage.getItem('userId')
 
   const getUserInfo = async () => {
     let searchValue = id;
@@ -30,10 +30,22 @@ export default function FriendsDetails() {
     setUser(res.data.user);
   };
 
-  const handleAddFriend = (userId: string) => {
-    const res = api.friends.sendRequest(userId);
-    console.log(res);
+  const handleAddFriend = async (userId: string) => {
+    const res = await api.friends.sendRequest(userId);
+    if (res.code === 200) {
+      message.success("添加成功！")
+      router.push('/friends')
+    }
   };
+
+  const deleteFriend = async () => {
+    const res = await api.friends.deleteFriend(userId, user?.id)
+
+    if (res.code === 200) {
+      message.success("删除成功！")
+      router.push('/friends')
+    }
+  }
 
   useEffect(() => {
     getUserInfo();
@@ -100,6 +112,7 @@ export default function FriendsDetails() {
             fontSize: "24px",
             margin: "0",
             color: currentTheme.colors.text,
+            lineHeight: "24px"
           }}
         >
           {user?.username}
@@ -114,7 +127,7 @@ export default function FriendsDetails() {
         </p>
       </div>
 
-      <Card title={t("settings.basicInfo")} style={cardStyle}>
+      <Card title={t("settings.basicInfo")} style={cardStyle} extra={<Button onClick={() => deleteFriend()} type='text'>{t('moments.delete')}</Button>}>
         <div style={sectionStyle}>
           <UserOutlined style={iconStyle} />
           <span style={labelStyle}>{t("settings.username")}</span>
