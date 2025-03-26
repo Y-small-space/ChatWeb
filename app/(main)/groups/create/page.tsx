@@ -14,7 +14,6 @@ export default function CreateGroupPage() {
   const router = useRouter();
 
   const handleSubmit = async (value) => {
-    console.log(value);
     api.groups.createGroup(value)
     message.success("创建成功！");
     router.push("/groups")

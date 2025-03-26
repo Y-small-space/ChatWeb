@@ -1,7 +1,7 @@
 "use client";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
 import { useTheme } from "../../../src/contexts/ThemeContext";
-import { Avatar, Card, Divider, Switch, Button, Space, message } from "antd";
+import { Avatar, Card, Divider, Switch, Button, Space, message, Upload } from "antd";
 import {
   UserOutlined,
   GlobalOutlined,
@@ -70,6 +70,33 @@ export default function SettingsPage() {
     fontSize: "14px",
   };
 
+  // 限制上传格式和大小
+  const beforeUpload = (file: File) => {
+    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
+    if (!isJpgOrPng) {
+      message.error(t("settings.uploadOnlyJpgPng"));
+      return false;
+    }
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      message.error(t("settings.uploadMaxSize"));
+      return false;
+    }
+    return true;
+  };
+
+  // 处理上传
+  const handleUpload = (info: any) => {
+    if (info.file.status === "done") {
+      // 这里假设后端返回新头像的 URL
+      const newAvatar = info.file.response?.url || URL.createObjectURL(info.file.originFileObj);
+      const updatedUser = { ...user, avatar: newAvatar };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      message.success(t("settings.uploadSuccess"));
+    }
+  };
+
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
@@ -83,19 +110,28 @@ export default function SettingsPage() {
             }
             style={{ marginBottom: "16px" }}
           />
-          <Button
-            type="primary"
-            size="small"
-            icon={<EditOutlined />}
-            style={{
-              position: "absolute",
-              right: 0,
-              bottom: "16px",
-              borderRadius: "50%",
-              padding: "8px",
-            }}
-            onClick={() => message.info(t("settings.uploadAvatarTip"))}
-          />
+          {/* 上传按钮 */}
+          <Upload
+            name="avatar"
+            action="http://localhost:8080/api/v1/user/uploadAvatar" // 你需要替换成后端的上传 API
+            showUploadList={false}
+            beforeUpload={beforeUpload}
+            onChange={handleUpload}
+            data={{ userId: user?.user_id }}
+          >
+            <Button
+              type="primary"
+              size="small"
+              icon={<EditOutlined />}
+              style={{
+                position: "absolute",
+                right: 0,
+                bottom: "16px",
+                borderRadius: "50%",
+                padding: "8px",
+              }}
+            />
+          </Upload>
         </div>
         <h1
           style={{
@@ -120,48 +156,21 @@ export default function SettingsPage() {
         <div style={sectionStyle}>
           <UserOutlined style={iconStyle} />
           <span style={labelStyle}>{t("settings.username")}</span>
-          <Space>
-            <span style={valueStyle}>{user?.username}</span>
-            <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => message.info(t("settings.editUsernameTip"))}
-            >
-              {t("settings.edit")}
-            </Button>
-          </Space>
+          <span style={valueStyle}>{user?.username}</span>
         </div>
         <Divider style={{ margin: "0" }} />
         <div style={sectionStyle}>
           <GlobalOutlined style={iconStyle} />
           <span style={labelStyle}>{t("settings.email")}</span>
-          <Space>
-            <span style={valueStyle}>{user?.email}</span>
-            <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => message.info(t("settings.editEmailTip"))}
-            >
-              {t("settings.edit")}
-            </Button>
-          </Space>
+          <span style={valueStyle}>{user?.email}</span>
         </div>
         <Divider style={{ margin: "0" }} />
         <div style={sectionStyle}>
           <PhoneOutlined style={iconStyle} />
           <span style={labelStyle}>{t("settings.phone")}</span>
-          <Space>
-            <span style={valueStyle}>
-              {user?.phone || t("settings.notSet")}
-            </span>
-            <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => message.info(t("settings.editPhoneTip"))}
-            >
-              {t("settings.edit")}
-            </Button>
-          </Space>
+          <span style={valueStyle}>
+            {user?.phone || t("settings.notSet")}
+          </span>
         </div>
         <div style={{ textAlign: "center", color: currentTheme.colors.text }}>
           <Button

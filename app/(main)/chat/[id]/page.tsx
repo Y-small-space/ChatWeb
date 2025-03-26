@@ -18,7 +18,6 @@ export default function ChatPage() {
 
   const getUserInfo = async () => {
     const userList: string | null = localStorage.getItem('userList');
-    console.log(userList);
 
     const user = userList
       ? JSON.parse(userList)?.find(

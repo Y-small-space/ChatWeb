@@ -6,7 +6,7 @@ import { useTheme } from "../../../../src/contexts/ThemeContext";
 import { useLanguage } from "../../../../src/contexts/LanguageContext";
 import { api } from 'src/services/api';
 import { useParams, useRouter } from "next/navigation";
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, PlusOutlined, TeamOutlined } from '@ant-design/icons';
 import type { TableProps } from 'antd';
 import Meta from 'antd/es/card/Meta';
 interface DataType {
@@ -28,32 +28,22 @@ export default function GroupDetailPage() {
   const [isEdit, setIsEdit] = useState(false);
   const [isAdd, setIsAdd] = useState(false);
   const [selectRows, setSelectRows] = useState();
-  console.log(users);
-
 
   const handleSubmit = async (value) => {
-    console.log(value);
     api.groups.createGroup(value)
     message.success("创建成功！");
     router.push("/groups")
   };
 
   const handleGoToChat = () => {
+    router.push(`/chat/group/${id}`)
   }
 
   const getGroupDetails = async () => {
-    console.log(id);
     const res = await api.groups.getGroupDetails(String(id));
-    console.log(res);
-    // const moke = []
-    // for (let i = 0; i < 20; i++) {
-    //   moke.push(res.members[0])
-    // }
-    // console.log('moke', moke);
     const ids = res.members.map(i => i.user_id);
     const admin = res.members.filter(i => i.role === 'admin')
     const resp = await api.user.getUsersByIDs(ids);
-    console.log(resp);
     const members = resp.users.map(i => {
       if (i.id === admin.id) {
         return { ...id, role: 'admin' }
@@ -103,7 +93,7 @@ export default function GroupDetailPage() {
           }}
         >
           <Meta
-            avatar={<Avatar />}
+            avatar={<Avatar size={40} icon={<TeamOutlined />} />}
             title={groupDetails?.group.name || ''}
           />
         </Card>
@@ -190,7 +180,6 @@ export default function GroupDetailPage() {
         />
       </Modal>
       <Modal title="添加群组成员" open={isAdd} onCancel={() => setIsAdd(false)} onOk={() => {
-        console.log(selectRows)
         addUserToGroup()
       }}
         footer={(_, { OkBtn }) => (

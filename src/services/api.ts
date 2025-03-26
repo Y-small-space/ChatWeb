@@ -229,9 +229,15 @@ class ApiService {
     ),
 
     recallMessage: (messageId: string) =>
-      this.request(`/chat/messages/${messageId}/recall`, {
+      this.request(`/v1/chat/messages/${messageId}/recall`, {
         method: 'POST',
       }),
+
+    getGroupMessages: (groupId: string) =>
+      this.request('/v1/chat/getGroupMessages', {
+        method: 'POST',
+        body: JSON.stringify({ groupId })
+      })
   };
 
   upload = {

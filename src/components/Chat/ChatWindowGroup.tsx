@@ -13,46 +13,31 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { MessageItem } from './MessageItem';
 import { Message } from '../../services/types';
-import { wsManager } from '../../services/websocket';
-import { api } from 'src/services/api';
 import { useWebSocket } from 'src/contexts/WebSocketContext';
+import { api } from 'src/services/api';
 
 interface ChatMessage {
   id: string;
   type: string;
   content: string;
   sender_id: string; // 当前用户 ID
-  receiver_id?: string;
-  // group_id?: string;
+  group_id?: string;
   created_at: string;
   sender: string;
   receiver?: string;
   status: string;
 }
 
-interface chantWindowProps {
-  type: string;
-  chatInfo: user;
-  id: string;
-}
-interface user {
-  created_at: string;
-  email: string;
-  id: string;
-  phone: string;
-  updated_at: string;
-  username: string;
-}
-
-export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
+export const ChatWindowGroup = ({ id, GroupInfo }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const { currentTheme } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
-  const [replyTo, setReplyTo] = useState<Message | null>(null);
   const ws = useWebSocket();
   const userId = localStorage.getItem("userId")
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const GroupToName = localStorage.getItem('GroupToName')
 
   // 处理发送消息
   const handleSend = (content: string) => {
@@ -65,20 +50,17 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
       type: 'text',
       content,
       sender_id: String(localStorage.getItem('userId')), // 当前用户 ID
-      receiver_id: id,
-      // group_id: type === "group" ? id : undefined,
+      group_id: id,
       created_at: new Date().toISOString(),
       sender: String(user.username),
-      receiver: chatInfo.username,
       status: 'sent',
     };
-    // wsManager.sendMessage(newMessage);
     ws.sendMessage(newMessage)
     setMessages([...messages, newMessage]);
   };
 
   const getMessage = async () => {
-    const res: any = await api.chat.getMessagesById(userId, id);
+    const res: any = await api.chat.getGroupMessages(id)
     if (res) {
       setMessages(res.messages);
     }
@@ -87,6 +69,7 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   const getMessageCurrent = () => {
     if (!ws) return;
     const handleMessage = (data: any) => {
+      if (data.sender_id === userId || data.group_id !== id) return;
       setMessages((prev) => [...prev, data]);
     };
 
@@ -122,16 +105,12 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
           onClick={() => router.back()}
         />
         <Avatar
-          src={
-            chatInfo?.avatar ||
-            'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
-          }
           size={40}
-          icon={type === 'group' ? <TeamOutlined /> : undefined}
+          icon={<TeamOutlined />}
         />
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 500 }}>{chatInfo?.username}</div>
-          {type === 'private' && (
+          <div style={{ fontWeight: 500 }}>{GroupInfo?.name}</div>
+          {/* {type === 'private' && (
             <div
               style={{
                 fontSize: '12px',
@@ -140,7 +119,7 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
             >
               {chatInfo?.online ? t('chat.online') : t('chat.offline')}
             </div>
-          )}
+          )} */}
         </div>
       </div>
 
@@ -239,4 +218,4 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   );
 };
 
-export default ChatWindow;
+export default ChatWindowGroup;

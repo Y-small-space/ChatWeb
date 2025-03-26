@@ -15,6 +15,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { currentTheme } = useTheme(); // 获取当前主题
 
+  const getGroupList = async () => {
+    const res = await api.groups.getGroups();
+    const GroupToName = Object.fromEntries(res.groups.map(i => [i.id, i.name]));
+    localStorage.setItem('GroupToName', JSON.stringify(GroupToName))
+  }
+  const getFriends = async () => {
+    const res = await api.friends.getFriends();
+    localStorage.setItem("userList", JSON.stringify(res.data.friends));
+  };
+
   // 登录表单提交处理
   const onFinish = async (values: { email: string; password: string }) => {
     try {
@@ -24,11 +34,11 @@ export default function LoginPage() {
       if (response.code === 200) {
         // 如果登录成功
         const { token, ...userData } = response.data; // 拿到 token 和用户数据
-        console.log(response);
-
         localStorage.setItem("token", token); // 将 token 存储到 localStorage
         localStorage.setItem("user", JSON.stringify(userData)); // 存储用户信息
         localStorage.setItem("userId", userData?.user_id); // 存储用户信息
+        getGroupList();
+        getFriends();
         wsManager.connect();
       }
       router.push("/");

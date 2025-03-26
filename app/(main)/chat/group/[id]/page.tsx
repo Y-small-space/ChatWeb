@@ -1,15 +1,23 @@
-"use client";
+'use client';
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { ChatWindowGroup } from 'src/components/Chat/ChatWindowGroup';
+import { api } from 'src/services/api';
 
-import { useParams } from "next/navigation";
-import ChatWindow from "../../../../../src/components/Chat/ChatWindow";
-
-export default function GroupChatPage() {
+export default function ChatPage() {
   const { id } = useParams();
-  const chatId = Array.isArray(id) ? id[0] : id;
-  const isGroup = true;
+  const [groupInfo, setGroupInfo] = useState();
+
+  const getGroupInfo = async () => {
+    const res = await api.groups.getGroupDetails(id);
+    setGroupInfo(res.group);
+  };
+
+  useEffect(() => {
+    getGroupInfo();
+  }, []);
 
   return (
-    // <ChatWindow type="group" id={chatId} messages={[]} chatInfo={chatInfo} />
-    <></>
+    groupInfo && <ChatWindowGroup id={id} GroupInfo={groupInfo} />
   );
 }

@@ -8,16 +8,9 @@ export class WebSocketManager {
 
   connect() {
     const userID = localStorage.getItem('userId');
-    console.log(userID);
-
-
     this.ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}?userId=${userID}`);
-    console.log(this.ws);
-
-
     this.ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log("收到消息:", data);
 
       if (this.onMessage) {
         this.onMessage(data); // 触发回调

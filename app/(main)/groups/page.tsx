@@ -16,8 +16,9 @@ export default function GroupsPage() {
 
   const getGroupList = async () => {
     const res = await api.groups.getGroups();
-    console.log(res.groups);
     setGroupList(res.groups)
+    const GroupToName = Object.fromEntries(res.groups.map(i => [i.id, i.name]));
+    localStorage.setItem('GroupToName', JSON.stringify(GroupToName))
   }
 
   useEffect(() => {

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from '../../../src/contexts/ThemeContext';
 import { wsManager } from '../../../src/services/websocket';
 import { api } from '../../../src/services/api';
+import { TeamOutlined } from '@ant-design/icons';
 
 interface ChatMessage {
   content: string;
@@ -27,17 +28,30 @@ export default function ChatListPage() {
   const [messages, setMessages] = useState<ChatMessage[]>();
   const user = JSON.parse(localStorage.getItem('user'));
   const userId: string | null = localStorage.getItem('userId');
+  const GroupToName = JSON.parse(localStorage.getItem('GroupToName'))
+  const friendsList = JSON.parse(localStorage.getItem('userList'))
+
+  const getAllLastMessages = async () => {
+    const { messages } = await api.chat.getAllLastMessages(String(userId));
+    const idToAvatar = Object.fromEntries(friendsList.map(i => [i.id, i.avatar]))
+    const messagesAfterHandle = messages.map(i => {
+      if (i.receiverer === '') {
+        return { ...i }
+      }
+      if (i.sender_id === userId) {
+        return { ...i, avatar: idToAvatar[i?.receiver_id] }
+      }
+      if (i.receiver_id === userId) {
+        return { ...i, avatar: idToAvatar[i?.sender_id] }
+      }
+    })
+    if (messages) {
+      setMessages(messagesAfterHandle);
+    }
+  };
 
   useEffect(() => {
     wsManager.connect();
-    const getAllLastMessages = async () => {
-      const { messages } = await api.chat.getAllLastMessages(String(userId));
-      console.log(messages);
-
-      if (messages) {
-        setMessages(messages);
-      }
-    };
     getAllLastMessages();
   }, []);
 
@@ -61,14 +75,18 @@ export default function ChatListPage() {
               background: currentTheme.colors.background,
               border: 'none',
             }}
-            onClick={() =>
+            onClick={() => {
+              if (chat.receiverer === '') {
+                router.push(`/chat/group/${chat.group_id}`);
+                return;
+              }
               router.push(
                 `/chat/${chat?.type === 'group' ? 'group/' : ''}${chat?.sender_id === userId
                   ? chat?.receiver_id
                   : chat?.sender_id
                 }`
               )
-            }
+            }}
           >
             <List.Item.Meta
               avatar={
@@ -77,13 +95,21 @@ export default function ChatListPage() {
                   offset={[-6, 28]}
                   color='green'
                 >
-                  <Avatar
-                    src={
-                      chat.avatar ||
-                      'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
-                    }
-                    size={48}
-                  />
+                  {
+                    chat.receiverer === '' ?
+                      <Avatar
+                        size={40}
+                        icon={<TeamOutlined />}
+                      /> :
+                      <Avatar
+                        src={
+                          chat.avatar ||
+                          'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
+                        }
+                        size={48}
+                      />
+                  }
+
                 </Badge>
               }
               title={
@@ -91,9 +117,15 @@ export default function ChatListPage() {
                   style={{ display: 'flex', justifyContent: 'space-between' }}
                 >
                   <span style={{ color: currentTheme.colors.text }}>
+
                     {chat?.sender === user.username
                       ? chat?.receiverer
                       : chat?.sender}
+
+                    {
+                      chat && chat?.group_id !== '' && GroupToName[chat?.group_id]
+                    }
+
                   </span>
                   <span
                     style={{

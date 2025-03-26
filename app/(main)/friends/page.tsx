@@ -79,7 +79,6 @@ export default function FriendsPage() {
           onSearch={async () => {
             const res = await api.friends.searchUser(searchValue);
             setSearchUser([res?.data.user]);
-            console.log(res);
           }}
         />
         <List
@@ -118,7 +117,6 @@ export default function FriendsPage() {
     const res = await api.friends.getFriends();
     setUserList(res.data.friends);
     localStorage.setItem("userList", JSON.stringify(res.data.friends));
-    console.log(res.data.friends);
   };
 
   return (

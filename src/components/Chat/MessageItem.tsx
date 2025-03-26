@@ -102,6 +102,9 @@ export const MessageItem = ({
         }}
       >
         {/* 消息内容 */}
+        <div style={{ color: 'gray', fontSize: "11px", marginBottom: '5px' }}>
+          {message.sender}
+        </div>
         <div
           style={{
             padding: "8px 12px",
@@ -150,12 +153,12 @@ export const MessageItem = ({
             icon={<MessageOutlined />}
             onClick={onReply}
           />
-          <Button
+          {/* <Button
             type="text"
             size="small"
             icon={<ForwardOutlined />}
             onClick={onForward}
-          />
+          /> */}
           {isSelf && (
             <Button
               type="text"
