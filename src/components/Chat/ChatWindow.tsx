@@ -52,7 +52,8 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const ws = useWebSocket();
-  const userId = localStorage.getItem("userId")
+  const userId = localStorage.getItem("userId");
+  const user = JSON.parse(localStorage.getItem("user"));
 
   // 处理发送消息
   const handleSend = (content: string) => {
@@ -161,6 +162,7 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
             message={msg}
             isSelf={msg?.sender_id === userId}
             onReply={() => setReplyTo(msg)}
+            avatar={msg?.sender_id === userId ? user?.avatar : chatInfo?.avatar}
           />
         ))}
       </div>

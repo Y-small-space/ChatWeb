@@ -21,6 +21,7 @@ export const MessageItem = ({
   onReply,
   onDelete,
   onForward,
+  avatar
 }) => {
   const { currentTheme } = useTheme();
   const { currentLanguage } = useLanguage();
@@ -95,7 +96,7 @@ export const MessageItem = ({
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <Avatar size={40} src={message.sender?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} />
+      <Avatar size={40} src={avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} />
       <div
         style={{
           maxWidth: "70%",
@@ -135,7 +136,7 @@ export const MessageItem = ({
             addSuffix: true,
             locale: currentLanguage === "zh" ? zhCN : enUS,
           })}
-          {isSelf && getStatusIcon()}
+          {/* {isSelf && getStatusIcon()} */}
         </div>
       </div>
 

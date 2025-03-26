@@ -25,6 +25,9 @@ export default function ChatPage() {
       )
       : null;
 
+    console.log("user", user);
+
+
     setUserInfo(user);
   };
 
