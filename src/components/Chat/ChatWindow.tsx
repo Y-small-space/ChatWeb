@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Avatar, Button, Input } from 'antd';
+import { Avatar, Button, Input, message } from 'antd';
 import {
   ArrowLeftOutlined,
   PictureOutlined,
@@ -46,6 +46,7 @@ interface user {
 
 export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messageText, setMessageText] = useState();
   const { currentTheme } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
@@ -54,10 +55,13 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   const ws = useWebSocket();
   const userId = localStorage.getItem("userId");
   const user = JSON.parse(localStorage.getItem("user"));
+  const [loading, setLoading] = useState(false);
+
+  console.log(messages);
+
 
   // 处理发送消息
   const handleSend = (content: string) => {
-
     const user = localStorage.getItem('user')
       ? JSON.parse(localStorage.getItem('user') as string)
       : null;
@@ -73,9 +77,9 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
       receiver: chatInfo.username,
       status: 'sent',
     };
-    // wsManager.sendMessage(newMessage);
     ws.sendMessage(newMessage)
     setMessages([...messages, newMessage]);
+    setMessageText('')
   };
 
   const getMessage = async () => {
@@ -93,16 +97,67 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
 
     ws.onMessage = handleMessage;
   }
+
+  const handleFileUpload = async (file: File, type: string) => {
+    setLoading(true);
+
+    // 创建 FormData 对象，将文件和类型加入
+    const formData = new FormData();
+    formData.append('file', file);
+    console.log('filename', file.name);
+
+
+    try {
+      // 调用后端的文件上传接口 (请替换为你实际的 API 地址)
+      const response = await fetch('http://localhost:8080/api/v1/file/uploadFile', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        // 文件上传成功，返回文件 URL
+        message.success(`上传成功`);
+        console.log('Uploaded file URL:', data.url);  // 打印文件 URL 或者在 UI 中显示
+        const messageUpload = {
+          id: `m${Date.now()}`,
+          type,
+          content: data.url,
+          sender_id: String(localStorage.getItem('userId')), // 当前用户 ID
+          receiver_id: id,
+          created_at: new Date().toISOString(),
+          sender: String(user.username),
+          receiver: chatInfo.username,
+          status: 'sent',
+          filename: file.name
+        }
+        setMessages([...messages, messageUpload]);
+        ws.sendMessage(messageUpload)
+      } else {
+        message.error(`上传失败: ${data.error}`);
+      }
+    } catch (error) {
+      message.error('文件上传出错');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     getMessage();
     getMessageCurrent();
   }, []);
 
   useEffect(() => {
-    const scrollTop = chatContainerRef.current?.scrollTop
+    const scrollTop = chatContainerRef.current?.scrollHeight
+
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({ top: scrollTop });
     }
+
+    console.log(messages);
+
   }, [messages])
 
   return (
@@ -179,7 +234,9 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
           <Button
             type='text'
             icon={<PictureOutlined />}
-            onClick={() => document.getElementById('upload-image')?.click()}
+            onClick={() => {
+              document.getElementById('upload-image')?.click()
+            }}
           >
             {t('chat.image')}
           </Button>
@@ -190,6 +247,7 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
           >
             {t('chat.file')}
           </Button>
+          {/* 图片 */}
           <input
             id='upload-image'
             type='file'
@@ -198,12 +256,18 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                const url = URL.createObjectURL(file);
-                // handleFileUpload(url, "image");
+                if (file.size <= 2 * 1024 * 1024) {
+                  // 小于等于 2MB，作为可预览的图片发送
+                  handleFileUpload(file, 'image');
+                } else {
+                  // 大于 2MB，作为文件发送
+                  handleFileUpload(file, 'file');
+                }
               }
-              e.target.value = '';
+              e.target.value = ''; // 清空文件输入框
             }}
           />
+          {/* 文件 */}
           <input
             id='upload-file'
             type='file'
@@ -211,27 +275,24 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                // handleFileUpload("#", "file", {
-                //   name: file.name,
-                //   size: file.size,
-                //   type: file.type,
-                //   url: "#",
-                // });
+                handleFileUpload(file, 'file');
               }
-              e.target.value = '';
+              e.target.value = ''; // 清空文件输入框
             }}
           />
         </div>
+        {/* 文本 */}
         <Input.TextArea
           placeholder={t('chat.inputPlaceholder')}
           autoSize={{ minRows: 1, maxRows: 4 }}
+          value={messageText}
+          onChange={e => setMessageText(String(e.target.value))}
           onPressEnter={(e) => {
             if (!e.shiftKey) {
               e.preventDefault();
-              const content = e.currentTarget.value.trim();
+              const content = messageText.trim();
               if (content) {
                 handleSend(content);
-                e.currentTarget.value = '';
               }
             }
           }}

@@ -9,6 +9,8 @@ import {
   DeleteOutlined,
   ForwardOutlined,
   MessageOutlined,
+  FileOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import { useTheme } from "../../contexts/ThemeContext";
 import { formatDistance } from "date-fns";
@@ -45,7 +47,7 @@ export const MessageItem = ({
       case "image":
         return (
           <Image
-            src={message.content}
+            src={`${message.content}`}
             alt="图片消息"
             style={{
               maxWidth: "300px",
@@ -61,24 +63,28 @@ export const MessageItem = ({
         return (
           <div
             style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
               padding: "8px 12px",
               background: currentTheme.colors.secondaryBackground,
               borderRadius: "8px",
-              cursor: "pointer",
             }}
-            onClick={() => window.open(message.file_info?.url)}
           >
-            <div>{message.file_info?.name}</div>
-            <div
-              style={{
-                fontSize: "12px",
-                color: currentTheme.colors.secondaryText,
-              }}
-            >
-              {(message.file_info?.size || 0) / 1024 / 1024} MB
-            </div>
+            {/* 文件类型图标 */}
+            <FileOutlined style={{ fontSize: "20px", color: currentTheme.colors.secondaryText }} />
+
+            {/* 文件名 */}
+            <span style={{ flex: 1, wordBreak: "break-all" }}>{message.filename}</span>
+
+            {/* 下载按钮 */}
+            <Button
+              type="link"
+              icon={<DownloadOutlined />}
+              onClick={() => window.open(message.content)}
+            />
           </div>
-        );
+        )
       default:
         return message.content;
     }

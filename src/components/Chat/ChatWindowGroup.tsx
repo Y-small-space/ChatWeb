@@ -81,7 +81,8 @@ export const ChatWindowGroup = ({ id, GroupInfo }) => {
   }, []);
 
   useEffect(() => {
-    const scrollTop = chatContainerRef.current?.scrollTop
+    const scrollTop = chatContainerRef.current?.scrollHeight
+
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({ top: scrollTop });
     }
