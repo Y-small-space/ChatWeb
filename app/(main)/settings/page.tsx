@@ -20,10 +20,13 @@ export default function SettingsPage() {
 
   useEffect(() => {
     getUserInfo();
+
   }, []);
 
   const getUserInfo = async () => {
     const user = localStorage.getItem("user");
+    console.log(user);
+
     const _ = JSON.parse(user);
     setUser(_);
   };

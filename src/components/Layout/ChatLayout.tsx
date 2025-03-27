@@ -13,6 +13,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { api } from 'src/services/api';
 const { Sider } = Layout;
 
 export default function ChatLayout({
@@ -32,6 +33,7 @@ export default function ChatLayout({
 
   const getUserInfo = async () => {
     const user = localStorage.getItem("user");
+    console.log(user);
     const _ = JSON.parse(user);
     setUser(_);
   };

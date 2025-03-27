@@ -1,21 +1,29 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Avatar, Button, Input, message } from 'antd';
+import { Avatar, Button, Card, Col, Input, message, Modal, Row, Image } from 'antd';
 import {
   ArrowLeftOutlined,
   PictureOutlined,
   TeamOutlined,
   FileOutlined,
+  StopOutlined,
+  AudioOutlined,
+  InfoCircleOutlined,
+  CloseOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { MessageItem } from './MessageItem';
 import { Message } from '../../services/types';
-import { wsManager } from '../../services/websocket';
 import { api } from 'src/services/api';
 import { useWebSocket } from 'src/contexts/WebSocketContext';
+import { formatDistance } from 'date-fns';
+import { zhCN, enUS } from "date-fns/locale";
+
+const { Search } = Input;
 
 interface ChatMessage {
   id: string;
@@ -28,6 +36,8 @@ interface ChatMessage {
   sender: string;
   receiver?: string;
   status: string;
+  reply?: any;
+  filename?: string
 }
 
 interface chantWindowProps {
@@ -44,6 +54,8 @@ interface user {
   username: string;
 }
 
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
 export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageText, setMessageText] = useState();
@@ -56,36 +68,77 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   const userId = localStorage.getItem("userId");
   const user = JSON.parse(localStorage.getItem("user"));
   const [loading, setLoading] = useState(false);
-
+  const [isListening, setIsListening] = useState(false); // 语音输入状态
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const [isShowMessagesModal, setIsShowMessagesModal] = useState(false)
+  const [messageHistory, setMessageHistory] = useState();
+  const [reply, setReply] = useState()
+  const { currentLanguage } = useLanguage();
   console.log(messages);
+  const onSearch: SearchProps['onSearch'] = (value, _e, info) => {
+    console.log('input', value);
+    if (String(value) === '') {
+      setMessageHistory(messages)
+      return
+    }
 
+    console.log(messageHistory.filter(i => i.content.includes(value)))
+    setMessageHistory(messageHistory.filter(i => i.content.includes(String(value)) && i.type === 'text'))
+  };
 
   // 处理发送消息
   const handleSend = (content: string) => {
-    const user = localStorage.getItem('user')
-      ? JSON.parse(localStorage.getItem('user') as string)
-      : null;
-    const newMessage: ChatMessage = {
-      id: `m${Date.now()}`,
-      type: 'text',
-      content,
-      sender_id: String(localStorage.getItem('userId')), // 当前用户 ID
-      receiver_id: id,
-      // group_id: type === "group" ? id : undefined,
-      created_at: new Date().toISOString(),
-      sender: String(user.username),
-      receiver: chatInfo.username,
-      status: 'sent',
-    };
+    let newMessage: ChatMessage;
+    if (!reply) {
+      const user = localStorage.getItem('user')
+        ? JSON.parse(localStorage.getItem('user') as string)
+        : null;
+      newMessage = {
+        id: `m${Date.now()}`,
+        type: 'text',
+        content,
+        sender_id: String(localStorage.getItem('userId')), // 当前用户 ID
+        receiver_id: id,
+        created_at: new Date().toISOString(),
+        sender: String(user.username),
+        receiver: chatInfo.username,
+        status: 'sent',
+      };
+    } else {
+      const user = localStorage.getItem('user')
+        ? JSON.parse(localStorage.getItem('user') as string)
+        : null;
+      newMessage = {
+        id: `m${Date.now()}`,
+        type: 'text',
+        content,
+        sender_id: String(localStorage.getItem('userId')), // 当前用户 ID
+        receiver_id: id,
+        // group_id: type === "group" ? id : undefined,
+        created_at: new Date().toISOString(),
+        sender: String(user.username),
+        receiver: chatInfo.username,
+        status: 'sent',
+        reply: [{ id: reply.id, sender: reply.sender, type: reply.type, created_at: reply.created_at, content: reply.content }]
+      };
+    }
+
     ws.sendMessage(newMessage)
     setMessages([...messages, newMessage]);
     setMessageText('')
+    setReply('')
+    getMessage()
   };
 
   const getMessage = async () => {
     const res: any = await api.chat.getMessagesById(userId, id);
     if (res) {
       setMessages(res.messages);
+      setMessageHistory(res.messages)
     }
   }
 
@@ -106,7 +159,6 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
     formData.append('file', file);
     console.log('filename', file.name);
 
-
     try {
       // 调用后端的文件上传接口 (请替换为你实际的 API 地址)
       const response = await fetch('http://localhost:8080/api/v1/file/uploadFile', {
@@ -119,17 +171,37 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
         // 文件上传成功，返回文件 URL
         message.success(`上传成功`);
         console.log('Uploaded file URL:', data.url);  // 打印文件 URL 或者在 UI 中显示
-        const messageUpload = {
-          id: `m${Date.now()}`,
-          type,
-          content: data.url,
-          sender_id: String(localStorage.getItem('userId')), // 当前用户 ID
-          receiver_id: id,
-          created_at: new Date().toISOString(),
-          sender: String(user.username),
-          receiver: chatInfo.username,
-          status: 'sent',
-          filename: file.name
+        let messageUpload: ChatMessage;
+
+        console.log('reply', reply);
+
+        if (reply) {
+          messageUpload = {
+            id: `m${Date.now()}`,
+            type,
+            content: data.url,
+            sender_id: String(localStorage.getItem('userId')), // 当前用户 ID
+            receiver_id: id,
+            created_at: new Date().toISOString(),
+            sender: String(user.username),
+            receiver: chatInfo.username,
+            status: 'sent',
+            filename: file.name,
+            reply: [{ id: reply.id, sender: reply.sender, type: reply.type, created_at: reply.created_at, content: reply.content }],
+          }
+        } else {
+          messageUpload = {
+            id: `m${Date.now()}`,
+            type,
+            content: data.url,
+            sender_id: String(localStorage.getItem('userId')), // 当前用户 ID
+            receiver_id: id,
+            created_at: new Date().toISOString(),
+            sender: String(user.username),
+            receiver: chatInfo.username,
+            status: 'sent',
+            filename: file.name,
+          }
         }
         setMessages([...messages, messageUpload]);
         ws.sendMessage(messageUpload)
@@ -141,6 +213,142 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+    // setReply('')
+    // getMessage()
+  };
+
+  // 语音识别逻辑
+  const handleVoiceInput = () => {
+    if (!SpeechRecognition) {
+      message.error('当前浏览器不支持语音输入');
+      return;
+    }
+
+    if (!recognitionRef.current) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.lang = 'zh-CN'; // 设置语言
+      recognitionRef.current.interimResults = false;
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+        message.success('正在聆听...');
+      };
+
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setMessageText(transcript); // 更新输入框
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error('语音识别错误:', event.error);
+        message.error('语音输入失败，请重试');
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+    }
+  };
+
+  // 开始录音
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        handleFileUpload(audioBlob, 'voice'); // 发送语音消息
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      message.error('无法访问麦克风');
+    }
+  };
+
+  // 停止录音
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+
+  const renderContent = (message) => {
+    switch (message.type) {
+      case "image":
+        return (
+          <Image
+            src={`${message.content}`}
+            alt="图片消息"
+            style={{
+              maxWidth: "300px",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
+            preview={{
+              mask: null,
+            }}
+          />
+        );
+      case "file":
+        return (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "8px 12px",
+              background: currentTheme.colors.secondaryBackground,
+              borderRadius: "8px",
+            }}
+          >
+            {/* 文件类型图标 */}
+            <FileOutlined style={{ fontSize: "20px", color: currentTheme.colors.secondaryText }} />
+
+            {/* 文件名 */}
+            <span style={{ flex: 1, wordBreak: "break-all" }}>{message.filename}</span>
+
+            {/* 下载按钮 */}
+            <Button
+              type="link"
+              icon={<DownloadOutlined />}
+              onClick={() => window.open(message.content)}
+            />
+          </div>
+        )
+      case "voice":
+        return (
+          <audio
+            controls
+            style={{ maxWidth: "250px", display: "block" }}
+            src={message.content}
+          >
+            您的浏览器不支持音频播放
+          </audio>
+        );
+      default:
+        return message.content;
     }
   };
 
@@ -155,9 +363,6 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({ top: scrollTop });
     }
-
-    console.log(messages);
-
   }, [messages])
 
   return (
@@ -187,17 +392,8 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
         />
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 500 }}>{chatInfo?.username}</div>
-          {type === 'private' && (
-            <div
-              style={{
-                fontSize: '12px',
-                color: currentTheme.colors.secondaryText,
-              }}
-            >
-              {chatInfo?.online ? t('chat.online') : t('chat.offline')}
-            </div>
-          )}
         </div>
+        <div onClick={() => setIsShowMessagesModal(true)}><InfoCircleOutlined /></div>
       </div>
 
       {/* 消息列表 */}
@@ -216,8 +412,10 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
             key={msg?.id}
             message={msg}
             isSelf={msg?.sender_id === userId}
-            onReply={() => setReplyTo(msg)}
+            onReply={() => setReply(msg)}
             avatar={msg?.sender_id === userId ? user?.avatar : chatInfo?.avatar}
+            showMessage={false}
+            getMessage={getMessage}
           />
         ))}
       </div>
@@ -230,6 +428,39 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
           background: currentTheme.colors.background,
         }}
       >
+        {
+          reply && <>
+            <Row>
+              <Col span={23}><Card style={{ width: "100%", display: "flex" }}>
+                <div>
+                  {renderContent(reply)}
+
+                </div>
+                {/* 消息时间和状态 */}
+                <div
+                  style={{
+                    marginTop: "10px",
+                    fontSize: "12px",
+                    color: currentTheme.colors.secondaryText,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  {formatDistance(new Date(reply.created_at), new Date(), {
+                    addSuffix: true,
+                    locale: currentLanguage === "zh" ? zhCN : enUS,
+                  })}
+                  {/* {isSelf && getStatusIcon()} */}
+                </div>
+              </Card></Col>
+              <Col span={1} style={{ paddingLeft: '10px' }}>
+                <CloseOutlined onClick={() => setReply('')} />
+              </Col>
+            </Row>
+
+          </>
+        }
         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
           <Button
             type='text'
@@ -247,6 +478,14 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
           >
             {t('chat.file')}
           </Button>
+          <Button
+            type='text'
+            icon={isListening ? <StopOutlined /> : <AudioOutlined />}
+            onClick={handleVoiceInput}
+          >
+            {isListening ? '停止' : '语音输入'}
+          </Button>
+          <Button type='text' icon={isRecording ? <StopOutlined /> : <AudioOutlined />} onClick={isRecording ? stopRecording : startRecording} >发送语音</Button>
           {/* 图片 */}
           <input
             id='upload-image'
@@ -298,6 +537,19 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
           }}
         />
       </div>
+      <Modal title="聊天记录" centered open={isShowMessagesModal} onCancel={() => setIsShowMessagesModal(false)} footer="" width={600} style={{ height: "600px", overflow: "auto" }}>
+        <Search placeholder="" onSearch={onSearch} size='middle' style={{ margin: "10px 0px" }} />
+        {
+          messageHistory?.map(i => <MessageItem
+            key={i?.id}
+            message={i}
+            isSelf={false}
+            avatar={i?.sender_id === userId ? user?.avatar : chatInfo?.avatar}
+            showMessage={true}
+            onReply={() => setReply(i)}
+          />)
+        }
+      </Modal>
     </div>
   );
 };

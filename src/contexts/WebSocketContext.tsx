@@ -11,7 +11,6 @@ export const WebSocketProvider = ({ children }: { children: React.ReactNode }) =
 
   useEffect(() => {
     ws.connect();
-    return () => ws.disconnect();
   }, []);
 
   return (

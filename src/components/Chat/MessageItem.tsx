@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Avatar, Button, Space, Image } from "antd";
+import { Avatar, Button, Space, Image, Card } from "antd";
 import {
   CheckOutlined,
   CheckCircleOutlined,
@@ -11,11 +11,13 @@ import {
   MessageOutlined,
   FileOutlined,
   DownloadOutlined,
+  RollbackOutlined,
 } from "@ant-design/icons";
 import { useTheme } from "../../contexts/ThemeContext";
 import { formatDistance } from "date-fns";
 import { zhCN, enUS } from "date-fns/locale";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { api } from 'src/services/api';
 
 export const MessageItem = ({
   message,
@@ -23,26 +25,20 @@ export const MessageItem = ({
   onReply,
   onDelete,
   onForward,
-  avatar
+  avatar,
+  showMessage,
+  getMessage
 }) => {
   const { currentTheme } = useTheme();
   const { currentLanguage } = useLanguage();
   const [showActions, setShowActions] = useState(false);
 
-  const getStatusIcon = () => {
-    switch (message.status) {
-      case "sent":
-        return <CheckOutlined />;
-      case "delivered":
-        return <CheckCircleOutlined />;
-      case "read":
-        return <CheckCircleFilled />;
-      default:
-        return null;
-    }
-  };
+  const deleteMessage = async () => {
+    const res = await api.chat.deleteMessageById({ userId: message.receiver_id, otherId: message.sender_id, messageId: message.id })
+    getMessage();
+  }
 
-  const renderContent = () => {
+  const renderContent = (message) => {
     switch (message.type) {
       case "image":
         return (
@@ -85,98 +81,213 @@ export const MessageItem = ({
             />
           </div>
         )
+      case "voice":
+        return (
+          <audio
+            controls
+            style={{ maxWidth: "250px", display: "block" }}
+            src={message.content}
+          >
+            您的浏览器不支持音频播放
+          </audio>
+        );
       default:
         return message.content;
     }
   };
 
-  return (
-    <div
-      style={{
-        marginBottom: "16px",
-        display: "flex",
-        flexDirection: isSelf ? "row-reverse" : "row",
-        alignItems: "flex-start",
-        gap: "12px",
-      }}
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
-    >
-      <Avatar size={40} src={avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} />
-      <div
-        style={{
-          maxWidth: "70%",
-        }}
-      >
-        {/* 消息内容 */}
-        <div style={{ color: 'gray', fontSize: "11px", marginBottom: '5px' }}>
-          {message.sender}
-        </div>
+  return (<>
+    {
+      !message?.reply?.length ?
         <div
           style={{
-            padding: "8px 12px",
-            borderRadius: "12px",
-            background: isSelf
-              ? currentTheme.colors.primary
-              : currentTheme.colors.background,
-            color: isSelf ? "#fff" : currentTheme.colors.text,
-            wordBreak: "break-word",
-          }}
-        >
-          {renderContent()}
-        </div>
-
-        {/* 消息时间和状态 */}
-        <div
-          style={{
-            marginTop: "4px",
-            fontSize: "12px",
-            color: currentTheme.colors.secondaryText,
+            marginBottom: "16px",
             display: "flex",
-            alignItems: "center",
-            gap: "4px",
-            justifyContent: isSelf ? "flex-end" : "flex-start",
+            flexDirection: isSelf ? "row-reverse" : "row",
+            alignItems: "flex-start",
+            gap: "12px",
           }}
+          onMouseEnter={() => setShowActions(true)}
+          onMouseLeave={() => setShowActions(false)}
         >
-          {formatDistance(new Date(message.created_at), new Date(), {
-            addSuffix: true,
-            locale: currentLanguage === "zh" ? zhCN : enUS,
-          })}
-          {/* {isSelf && getStatusIcon()} */}
-        </div>
-      </div>
+          <Avatar size={40} src={avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} />
+          <div
+            style={{
+              maxWidth: "70%",
+            }}
+          >
+            {/* 消息内容 */}
+            <div style={{ color: 'gray', fontSize: "11px", marginBottom: '5px' }}>
+              {message.sender}
+            </div>
+            <div
+              style={{
+                padding: "8px 12px",
+                borderRadius: "12px",
+                background: isSelf
+                  ? currentTheme.colors.primary
+                  : currentTheme.colors.background,
+                color: isSelf ? "#fff" : currentTheme.colors.text,
+                wordBreak: "break-word",
+              }}
+            >
+              {renderContent(message)}
+            </div>
 
-      {/* 消息操作按钮 */}
-      {showActions && (
-        <Space
-          style={{
-            opacity: showActions ? 1 : 0,
-            transition: "opacity 0.3s",
-          }}
-        >
-          <Button
-            type="text"
-            size="small"
-            icon={<MessageOutlined />}
-            onClick={onReply}
-          />
-          {/* <Button
-            type="text"
-            size="small"
-            icon={<ForwardOutlined />}
-            onClick={onForward}
-          /> */}
-          {isSelf && (
-            <Button
-              type="text"
-              size="small"
-              icon={<DeleteOutlined />}
-              onClick={onDelete}
-              danger
-            />
+            {/* 消息时间和状态 */}
+            <div
+              style={{
+                marginTop: "4px",
+                fontSize: "12px",
+                color: currentTheme.colors.secondaryText,
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                justifyContent: isSelf ? "flex-end" : "flex-start",
+              }}
+            >
+              {formatDistance(new Date(message.created_at), new Date(), {
+                addSuffix: true,
+                locale: currentLanguage === "zh" ? zhCN : enUS,
+              })}
+              {/* {isSelf && getStatusIcon()} */}
+            </div>
+          </div>
+
+          {/* 消息操作按钮 */}
+          {showActions && !showMessage && (
+            <Space
+              style={{
+                opacity: showActions ? 1 : 0,
+                transition: "opacity 0.3s",
+              }}
+            >
+              <Button
+                type="text"
+                size="small"
+                icon={<MessageOutlined />}
+                onClick={!showMessage && onReply}
+              />
+              {
+                !isSelf && <Button
+                  type="text"
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  onClick={deleteMessage}
+                  danger
+                />
+              }
+              {isSelf && (
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<RollbackOutlined />}
+                  onClick={deleteMessage}
+                  danger
+                />
+              )}
+            </Space>
           )}
-        </Space>
-      )}
-    </div>
+        </div> :
+        <div
+          style={{
+            marginBottom: "16px",
+            display: "flex",
+            flexDirection: isSelf ? "row-reverse" : "row",
+            alignItems: "flex-start",
+            gap: "12px",
+          }}
+          onMouseEnter={() => setShowActions(true)}
+          onMouseLeave={() => setShowActions(false)}
+        >
+          <Avatar size={40} src={avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} />
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div
+              style={{
+                maxWidth: "70%",
+              }}
+            >
+              {/* 消息内容 */}
+              <div style={{ color: 'gray', fontSize: "11px", marginBottom: '5px' }}>
+                {message?.sender}
+              </div>
+              <div
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "12px",
+                  background: isSelf
+                    ? currentTheme.colors.primary
+                    : currentTheme.colors.background,
+                  color: isSelf ? "#fff" : currentTheme.colors.text,
+                  wordBreak: "break-word",
+                  marginBottom: "10px"
+                }}
+              >
+                {renderContent(message)}
+              </div>
+
+              <div
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "12px",
+                  background: "rgb(0,0,0,0.2)",
+                  color: isSelf ? "#fff" : currentTheme.colors.text,
+                  wordBreak: "break-word",
+                }}
+              >
+                <div style={{ color: 'gray', fontSize: "11px", marginBottom: '5px' }}>{message.reply[0].sender}</div>
+                {renderContent(message.reply[0])}
+              </div>
+              {/* 消息时间和状态 */}
+              <div
+                style={{
+                  marginTop: "4px",
+                  fontSize: "12px",
+                  color: currentTheme.colors.secondaryText,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  justifyContent: isSelf ? "flex-end" : "flex-start",
+                }}
+              >
+                {formatDistance(new Date(message?.created_at), new Date(), {
+                  addSuffix: true,
+                  locale: currentLanguage === "zh" ? zhCN : enUS,
+                })}
+                {/* {isSelf && getStatusIcon()} */}
+              </div>
+            </div>
+          </div>
+          {/* 消息操作按钮 */}
+          {showActions && !showMessage && (
+            <Space
+              style={{
+                opacity: showActions ? 1 : 0,
+                transition: "opacity 0.3s",
+              }}
+            >
+              {
+                !isSelf && <Button
+                  type="text"
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  onClick={deleteMessage}
+                  danger
+                />
+              }
+              {isSelf && (
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<RollbackOutlined />}
+                  onClick={deleteMessage}
+                  danger
+                />
+              )}
+            </Space>
+          )}
+        </div >
+    }
+  </>
   );
 }

@@ -237,6 +237,15 @@ class ApiService {
       this.request('/v1/chat/getGroupMessages', {
         method: 'POST',
         body: JSON.stringify({ groupId })
+      }),
+    deleteMessageById: ({ userId, otherId, messageId }) =>
+      this.request('/v1/messages/delete', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId,
+          otherId,
+          messageId
+        })
       })
   };
 
