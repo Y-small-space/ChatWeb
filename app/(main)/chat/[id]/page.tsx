@@ -1,4 +1,5 @@
 'use client';
+
 import { useParams } from 'next/navigation';
 import ChatWindow from '../../../../src/components/Chat/ChatWindow';
 import { useEffect, useState } from 'react';
@@ -18,16 +19,11 @@ export default function ChatPage() {
 
   const getUserInfo = async () => {
     const userList: string | null = localStorage.getItem('userList');
-
     const user = userList
       ? JSON.parse(userList)?.find(
         (user: user) => String(user.id) === String(id)
       )
       : null;
-
-    console.log("user", user);
-
-
     setUserInfo(user);
   };
 

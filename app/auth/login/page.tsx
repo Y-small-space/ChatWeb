@@ -17,12 +17,17 @@ export default function LoginPage() {
 
   const getGroupList = async () => {
     const res = await api.groups.getGroups();
-    const GroupToName = Object.fromEntries(res.groups.map(i => [i.id, i.name]));
-    localStorage.setItem('GroupToName', JSON.stringify(GroupToName))
+    if (res.groups) {
+      const GroupToName = Object.fromEntries(res.groups.map(i => [i.id, i.name]));
+      localStorage.setItem('GroupToName', JSON.stringify(GroupToName))
+    }
   }
+
   const getFriends = async () => {
     const res = await api.friends.getFriends();
-    localStorage.setItem("userList", JSON.stringify(res.data.friends));
+    if (res.data) {
+      localStorage.setItem("userList", JSON.stringify(res.data.friends));
+    }
   };
 
   // 登录表单提交处理
@@ -30,7 +35,7 @@ export default function LoginPage() {
     try {
       // 触发 Redux 登录 action，并等待结果
       setLoading(true);
-      const response: any = await api.auth.login(values); // 调用登录 API
+      const response = await api.auth.login(values); // 调用登录 API
       if (response.code === 200) {
         // 如果登录成功
         const { token, ...userData } = response.data; // 拿到 token 和用户数据

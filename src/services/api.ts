@@ -12,11 +12,12 @@ export interface RegisterRequest {
   phone?: string;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
   code: number;
-  message: string;
-  data: T;
+  messages?: T;
+  data?: T;
   error?: string;
+  groups?: Group[]
 }
 
 export interface UserProfile {
@@ -52,6 +53,7 @@ export interface RegisterResponse {
 }
 
 export interface Group {
+  id: string;
   group_id: string;
   name: string;
   description?: string;
@@ -120,6 +122,13 @@ class ApiService {
         });
 
         const data = await response.json();
+
+        if (response.status === 401) {
+          // Token 过期或无效
+          localStorage.removeItem('token');
+          window.location.href = '/auth/login';
+          throw new Error('Unauthorized');
+        }
 
         // 处理特定状态码
         switch (response.status) {
@@ -215,10 +224,10 @@ class ApiService {
         body: JSON.stringify(data),
       }),
 
-    getAllLastMessages: ((userId: string) =>
+    getAllLastMessages: ((userId: string, group_ids) =>
       this.request('/v1/chat/getAllLastMessages', {
         method: 'POST',
-        body: JSON.stringify({ userId: String(userId) })
+        body: JSON.stringify({ userId: String(userId), groupIds: group_ids })
       })
     ),
     getMessagesById: ((userId: string, otherId: string) =>
@@ -238,13 +247,19 @@ class ApiService {
         method: 'POST',
         body: JSON.stringify({ groupId })
       }),
-    deleteMessageById: ({ userId, otherId, messageId }) =>
+    deleteMessageById: ({ messageId }) =>
       this.request('/v1/messages/delete', {
         method: 'POST',
         body: JSON.stringify({
-          userId,
-          otherId,
           messageId
+        })
+      }),
+    markGroupMessagesAsRead: ({ userId, groupId }) =>
+      this.request('/v1/messages/markGroupMessageAsRead', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: String(userId),
+          groupId: String(groupId)
         })
       })
   };

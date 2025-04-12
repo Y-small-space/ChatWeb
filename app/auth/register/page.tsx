@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { Form, Input, Button, message } from "antd";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { register } from "../../../src/store/slices/authSlice";
 import { RootState } from "../../../src/store";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
 import Link from "next/link";
@@ -15,16 +14,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { t } = useLanguage();
-  const { isAuthenticated, loading } = useSelector(
-    (state: RootState) => state.auth
-  );
   const { currentTheme } = useTheme();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/");
-    }
-  }, [isAuthenticated, router]);
 
   const onFinish = async (values: {
     email: string;
@@ -39,13 +30,6 @@ export default function RegisterPage() {
     }
 
     try {
-      const registerData = {
-        email: values.email,
-        password: values.password,
-        username: values.username,
-        phone: values.phone,
-      };
-      await dispatch(register(registerData)).unwrap();
       message.success(t("auth.registerSuccess"));
       router.push("/");
     } catch (error) {
@@ -164,7 +148,6 @@ export default function RegisterPage() {
             htmlType="submit"
             size="large"
             block
-            loading={loading}
             style={{
               height: "48px",
               borderRadius: "12px",

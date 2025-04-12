@@ -21,7 +21,7 @@ import { Message } from '../../services/types';
 import { api } from 'src/services/api';
 import { useWebSocket } from 'src/contexts/WebSocketContext';
 import { formatDistance } from 'date-fns';
-import { zhCN, enUS } from "date-fns/locale";
+import { zhCN, enUS, da } from "date-fns/locale";
 
 const { Search } = Input;
 
@@ -36,10 +36,9 @@ interface ChatMessage {
   sender: string;
   receiver?: string;
   status: string;
-  reply?: any;
   filename?: string
+  reply?: any[]
 }
-
 interface chantWindowProps {
   type: string;
   chatInfo: user;
@@ -63,16 +62,14 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   const { t } = useLanguage();
   const router = useRouter();
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
-  const [replyTo, setReplyTo] = useState<Message | null>(null);
   const ws = useWebSocket();
   const userId = localStorage.getItem("userId");
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user") || '');
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false); // 语音输入状态
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const [isShowMessagesModal, setIsShowMessagesModal] = useState(false)
   const [messageHistory, setMessageHistory] = useState();
@@ -85,8 +82,6 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
       setMessageHistory(messages)
       return
     }
-
-    console.log(messageHistory.filter(i => i.content.includes(value)))
     setMessageHistory(messageHistory.filter(i => i.content.includes(String(value)) && i.type === 'text'))
   };
 
@@ -136,6 +131,8 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
 
   const getMessage = async () => {
     const res: any = await api.chat.getMessagesById(userId, id);
+    console.log(res.messages);
+
     if (res) {
       setMessages(res.messages);
       setMessageHistory(res.messages)
@@ -145,6 +142,11 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   const getMessageCurrent = () => {
     if (!ws) return;
     const handleMessage = (data: any) => {
+      if (data.type === "read") {
+        console.log("updated!");
+        getMessage()
+        return;
+      }
       setMessages((prev) => [...prev, data]);
     };
 
@@ -238,6 +240,8 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
+        console.log("输入框", transcript);
+
         setMessageText(transcript); // 更新输入框
       };
 
@@ -355,6 +359,9 @@ export const ChatWindow = ({ type, chatInfo, id }: chantWindowProps) => {
   useEffect(() => {
     getMessage();
     getMessageCurrent();
+
+    ws.sendMessage({ type: "changeStatus", sender_id: userId, receiver_id: id });
+    // console.log({ sender_id: userId, receiver_id: id });
   }, []);
 
   useEffect(() => {

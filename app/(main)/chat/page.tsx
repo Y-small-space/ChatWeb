@@ -7,6 +7,7 @@ import { useTheme } from '../../../src/contexts/ThemeContext';
 import { wsManager } from '../../../src/services/websocket';
 import { api } from '../../../src/services/api';
 import { TeamOutlined } from '@ant-design/icons';
+import { useWebSocket } from 'src/contexts/WebSocketContext';
 
 interface ChatMessage {
   content: string;
@@ -21,38 +22,67 @@ interface ChatMessage {
   status: string;
   type: string;
   updated_at: string;
+  avatar: string;
 }
 export default function ChatListPage() {
   const router = useRouter();
   const { currentTheme } = useTheme();
   const [messages, setMessages] = useState<ChatMessage[]>();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = JSON.parse(localStorage.getItem('user') || '');
   const userId: string | null = localStorage.getItem('userId');
-  const GroupToName = JSON.parse(localStorage.getItem('GroupToName'))
-  const friendsList = JSON.parse(localStorage.getItem('userList'))
+  const GroupToName = JSON.parse(localStorage.getItem('GroupToName') || '')
+  const friendsList = JSON.parse(localStorage.getItem('userList') || '')
+  const ws = useWebSocket();
 
   const getAllLastMessages = async () => {
-    const { messages } = await api.chat.getAllLastMessages(String(userId));
+    const { messages } = await api.chat.getAllLastMessages(String(userId), Object.keys(GroupToName));
     const idToAvatar = Object.fromEntries(friendsList.map(i => [i.id, i.avatar]))
-    const messagesAfterHandle = messages.map(i => {
-      if (i.receiverer === '') {
-        return { ...i }
-      }
-      if (i.sender_id === userId) {
-        return { ...i, avatar: idToAvatar[i?.receiver_id] }
-      }
-      if (i.receiver_id === userId) {
-        return { ...i, avatar: idToAvatar[i?.sender_id] }
-      }
-    })
-    if (messages) {
-      setMessages(messagesAfterHandle);
+    const messagesHandle = messages && Object.values(messages)
+    console.log(messagesHandle);
+
+    const result = [];
+    if (Array.isArray(messagesHandle)) {
+      messagesHandle.forEach((messageByIds) => {
+        console.log(messageByIds[0].receiverer);
+        if (Array.isArray(messageByIds)) {
+          if (messageByIds[0].receiverer) {
+            const unreadMessages = messageByIds.filter(i => i.sender_id !== userId && i.status === 'sent')
+            const lastMessage = messageByIds.pop();
+            result.push({
+              ...lastMessage,
+              unreadCount: unreadMessages.length,
+              avatar: lastMessage.sender_id !== userId ? idToAvatar[messageByIds.pop().receiver_id] : idToAvatar[messageByIds.pop().sender_id]
+            })
+          } else {
+            const unreadMessages = messageByIds.filter(i => !i.read_by.includes(userId) && i.sender_id !== userId)
+            console.log(unreadMessages);
+
+            const lastMessage = messageByIds.pop();
+            result.push({
+              ...lastMessage,
+              unreadCount: unreadMessages.length,
+              avatar: lastMessage.sender_id !== userId ? idToAvatar[messageByIds.pop().receiver_id] : idToAvatar[messageByIds.pop().sender_id]
+            })
+          }
+        }
+      })
     }
+    console.log(result);
+    setMessages(result);
   };
 
   useEffect(() => {
     wsManager.connect();
+    const handleMessage = (data) => {
+      if (data.type === "read") {
+        console.log("updated!");
+        getAllLastMessages()
+        return;
+      }
+    };
+    ws.onMessage = handleMessage;
     getAllLastMessages();
+
   }, []);
 
   return (
@@ -103,7 +133,7 @@ export default function ChatListPage() {
                       /> :
                       <Avatar
                         src={
-                          chat.avatar ||
+                          chat?.avatar ||
                           'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
                         }
                         size={48}
@@ -117,10 +147,10 @@ export default function ChatListPage() {
                   style={{ display: 'flex', justifyContent: 'space-between' }}
                 >
                   <span style={{ color: currentTheme.colors.text }}>
-
-                    {chat?.sender === user.username
+                    {chat.receiverer !== '' && ((chat?.sender === user.username)
                       ? chat?.receiverer
-                      : chat?.sender}
+                      : chat?.sender)
+                    }
 
                     {
                       chat && chat?.group_id !== '' && GroupToName[chat?.group_id]
@@ -152,12 +182,12 @@ export default function ChatListPage() {
                   >
                     {chat?.content}
                   </span>
-                  {/* {chat?.unread > 0 && (
+                  {chat?.unreadCount > 0 && (
                     <Badge
-                      count={chat?.unread}
+                      count={chat?.unreadCount}
                       style={{ backgroundColor: "#ff2d55" }}
                     />
-                  )} */}
+                  )}
                 </div>
               }
             />
