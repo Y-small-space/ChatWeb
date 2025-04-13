@@ -120,7 +120,7 @@ export const MessageItem = ({
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
-        <Avatar size={40} src={avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} />
+        <Avatar size={40} src={message.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} />
         <div
           style={{
             maxWidth: "70%",
@@ -150,7 +150,7 @@ export const MessageItem = ({
               background: isSelf
                 ? currentTheme.colors.primary
                 : currentTheme.colors.background,
-              color: isSelf ? "#fff" : currentTheme.colors.text,
+              color: isSelf ? "#fff" : "black",
               wordBreak: "break-word",
               marginTop: "10px"
             }}

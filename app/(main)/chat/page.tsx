@@ -38,7 +38,7 @@ export default function ChatListPage() {
     const { messages } = await api.chat.getAllLastMessages(String(userId), Object.keys(GroupToName));
     const idToAvatar = Object.fromEntries(friendsList.map(i => [i.id, i.avatar]))
     const messagesHandle = messages && Object.values(messages)
-    console.log(messagesHandle);
+    console.log(idToAvatar);
 
     const result = [];
     if (Array.isArray(messagesHandle)) {
@@ -51,7 +51,7 @@ export default function ChatListPage() {
             result.push({
               ...lastMessage,
               unreadCount: unreadMessages.length,
-              avatar: lastMessage.sender_id !== userId ? idToAvatar[messageByIds.pop().receiver_id] : idToAvatar[messageByIds.pop().sender_id]
+              avatar: lastMessage.sender_id !== userId ? idToAvatar[lastMessage.sender_id] : idToAvatar[lastMessage.receiver_id]
             })
           } else {
             const unreadMessages = messageByIds.filter(i => !i.read_by.includes(userId) && i.sender_id !== userId)
@@ -61,7 +61,6 @@ export default function ChatListPage() {
             result.push({
               ...lastMessage,
               unreadCount: unreadMessages.length,
-              avatar: lastMessage.sender_id !== userId ? idToAvatar[messageByIds.pop().receiver_id] : idToAvatar[messageByIds.pop().sender_id]
             })
           }
         }
@@ -79,6 +78,7 @@ export default function ChatListPage() {
         getAllLastMessages()
         return;
       }
+      getAllLastMessages();
     };
     ws.onMessage = handleMessage;
     getAllLastMessages();

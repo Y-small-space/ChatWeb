@@ -36,6 +36,7 @@ interface ChatMessage {
   receiver?: string;
   status: string;
   reply?: any;
+  avatar?: string,
   filename?: string
 }
 
@@ -80,6 +81,7 @@ export const ChatWindowGroup = ({ id, GroupInfo }) => {
       newMessage = {
         id: `m${Date.now()}`,
         type: 'text',
+        avatar: user.avatar,
         content,
         sender_id: String(localStorage.getItem('userId')), // 当前用户 ID
         group_id: id,
@@ -92,6 +94,7 @@ export const ChatWindowGroup = ({ id, GroupInfo }) => {
       newMessage = {
         id: `m${Date.now()}`,
         type: 'text',
+        avatar: user.avatar,
         content,
         sender_id: String(localStorage.getItem('userId')), // 当前用户 ID
         group_id: id,
@@ -155,6 +158,7 @@ export const ChatWindowGroup = ({ id, GroupInfo }) => {
             status: 'sent',
             group_id: id,
             filename: file.name,
+            avatar: user.avatar,
             reply: [{ id: reply.id, sender: reply.sender, type: reply.type, created_at: reply.created_at, content: reply.content }],
           }
         } else {
@@ -167,6 +171,7 @@ export const ChatWindowGroup = ({ id, GroupInfo }) => {
             created_at: new Date().toISOString(),
             status: 'sent',
             group_id: id,
+            avatar: user.avatar,
             filename: file.name,
           }
         }

@@ -30,7 +30,119 @@ const { TextArea } = Input;
 export default function MomentsList() {
   const { currentTheme } = useTheme();
   const { t, currentLanguage } = useLanguage();
-  const [moments, setMoments] = useState([]);
+  const [moments, setMoments] = useState([
+    {
+      id: "m1",
+      user: { name: "user004", avatar: "http://localhost:8080/uploads/avator/1743084021-WechatIMG6775.jpg" },
+      content: "今天的天空真美 🌤️",
+      images: [
+        "http://localhost:8080/uploads/avator/1743079260-122589936_p0.jpg",
+        "http://localhost:8080/uploads/avator/1743079260-122589936_p0.jpg",
+        "http://localhost:8080/uploads/avator/1743080973-125754553_p0.jpg",
+        "http://localhost:8080/uploads/avator/1743080973-125754553_p0.jpg",
+        "http://localhost:8080/uploads/avator/1743081034-WechatIMG6772.jpg",
+        "http://localhost:8080/uploads/avator/1743081034-WechatIMG6772.jpg",
+        // 最多9张
+      ],
+      created_at: "2025-04-12T10:00:00Z",
+      likes: 5,
+      liked: false,
+      comments: [
+        {
+          id: "c1",
+          user: { name: "李四", avatar: "..." },
+          content: "确实很美！",
+          created_at: "...",
+        },
+      ],
+    },
+    {
+      id: "m2",
+      user: { name: "张三", avatar: "..." },
+      content: "今天的天空真美 🌤️",
+      images: [
+        "http://localhost:8080/uploads/xx1.jpg",
+        "http://localhost:8080/uploads/xx2.jpg",
+        // 最多9张
+      ],
+      created_at: "2025-04-12T10:00:00Z",
+      likes: 5,
+      liked: false,
+      comments: [
+        {
+          id: "c1",
+          user: { name: "李四", avatar: "..." },
+          content: "确实很美！",
+          created_at: "...",
+        },
+      ],
+    },
+    {
+      id: "m3",
+      user: { name: "张三", avatar: "..." },
+      content: "今天的天空真美 🌤️",
+      images: [
+        "http://localhost:8080/uploads/xx1.jpg",
+        "http://localhost:8080/uploads/xx2.jpg",
+        // 最多9张
+      ],
+      created_at: "2025-04-12T10:00:00Z",
+      likes: 5,
+      liked: false,
+      comments: [
+        {
+          id: "c1",
+          user: { name: "李四", avatar: "..." },
+          content: "确实很美！",
+          created_at: "...",
+        },
+      ],
+    },
+    {
+      id: "m4",
+      user: { name: "张三", avatar: "..." },
+      content: "今天的天空真美 🌤️",
+      images: [
+        "http://localhost:8080/uploads/xx1.jpg",
+        "http://localhost:8080/uploads/xx2.jpg",
+        // 最多9张
+      ],
+      created_at: "2025-04-12T10:00:00Z",
+      likes: 5,
+      liked: false,
+      comments: [
+        {
+          id: "c1",
+          user: { name: "李四", avatar: "..." },
+          content: "确实很美！",
+          created_at: "...",
+        },
+      ],
+    },
+    {
+      id: "m5",
+      user: { name: "张三", avatar: "..." },
+      content: "今天的天空真美 🌤️",
+      images: [
+        "http://localhost:8080/uploads/xx1.jpg",
+        "http://localhost:8080/uploads/xx2.jpg",
+        "http://localhost:8080/uploads/xx2.jpg",
+        "http://localhost:8080/uploads/xx2.jpg",
+        // 最多9张
+      ],
+      created_at: "2025-04-12T10:00:00Z",
+      likes: 5,
+      liked: false,
+      comments: [
+        {
+          id: "c1",
+          user: { name: "李四", avatar: "..." },
+          content: "确实很美！",
+          created_at: "...",
+        },
+      ],
+    },
+  ]);
   const [commentInput, setCommentInput] = useState<{ [key: string]: string }>(
     {}
   );
@@ -38,16 +150,7 @@ export default function MomentsList() {
     {}
   );
   const [loading, setLoading] = useState(false);
-
-  // 头部背景图
-  const headerStyle = {
-    height: "300px",
-    background: `url(https://picsum.photos/1200/400)`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    position: "relative" as const,
-    marginBottom: "60px",
-  };
+  const user = JSON.parse(localStorage.getItem('user') || '');
 
   // 用户头像样式
   const avatarContainerStyle = {
@@ -64,10 +167,10 @@ export default function MomentsList() {
       prev.map((moment) =>
         moment.id === momentId
           ? {
-              ...moment,
-              likes: moment.liked ? moment.likes - 1 : moment.likes + 1,
-              liked: !moment.liked,
-            }
+            ...moment,
+            likes: moment.liked ? moment.likes - 1 : moment.likes + 1,
+            liked: !moment.liked,
+          }
           : moment
       )
     );
@@ -90,9 +193,9 @@ export default function MomentsList() {
       prev.map((moment) =>
         moment.id === momentId
           ? {
-              ...moment,
-              comments: [...moment.comments, newComment],
-            }
+            ...moment,
+            comments: [...moment.comments, newComment],
+          }
           : moment
       )
     );
@@ -104,7 +207,13 @@ export default function MomentsList() {
   return (
     <div style={{ background: currentTheme.colors.background }}>
       {/* 头部背景 */}
-      <div style={headerStyle}>
+      <div style={{
+        height: "500px",
+        background: 'url("http://localhost:8080/uploads/background/01.png")',
+        backgroundPosition: "center",
+        position: "relative" as const,
+        backgroundSize: 'fill',
+      }}>
         <div style={avatarContainerStyle}>
           <div style={{ textAlign: "right", color: "#fff" }}>
             <h2 style={{ margin: 0, textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
@@ -120,260 +229,150 @@ export default function MomentsList() {
               border: "4px solid #fff",
               boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
             }}
-            src={"https://api.dicebear.com/7.x/avataaars/svg?seed=default"}
+            src={user?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=default"}
           />
         </div>
-      </div>
-
-      {/* 发布动态按钮 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{
-          position: "sticky",
+        <div style={{
+          position: "absolute",
           top: 20,
-          zIndex: 100,
-          padding: "0 20px",
-          maxWidth: "600px",
-          margin: "0 auto",
-        }}
-      >
-        <Card
-          style={{
-            borderRadius: "16px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          }}
-        >
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <Avatar size={40}>Me</Avatar>
-            <Input
-              placeholder={t("moments.contentPlaceholder")}
-              style={{
-                borderRadius: "20px",
-                backgroundColor: currentTheme.colors.secondaryBackground,
-              }}
-              suffix={
-                <Space>
-                  <Button type="text" icon={<PictureOutlined />} />
-                  <Button type="text" icon={<CameraOutlined />} />
-                </Space>
-              }
-            />
-          </div>
-        </Card>
-      </motion.div>
+          right: 20,
+          zIndex: 10,
+        }}>
+          <Button
+            type="primary"
+            icon={<PictureOutlined />}
+            onClick={() => {
+              // 示例：跳转到发布页或弹出发布框
+              console.log("发布动态");
+            }}
+          >
+            发布
+          </Button>
+        </div>
 
+      </div>
       {/* 动态列表 */}
-      <div
-        style={{ maxWidth: "600px", margin: "20px auto", padding: "0 20px" }}
-      >
-        <Space direction="vertical" style={{ width: "100%" }} size={20}>
-          <AnimatePresence>
-            {moments.map((moment, index) => (
-              <motion.div
-                key={moment.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card
+      <div style={{ padding: "20px", maxWidth: 700, margin: "0 auto" }}>
+        {loading ? (
+          <Skeleton active paragraph={{ rows: 4 }} />
+        ) : (
+          moments.map((moment) => (
+            <Card
+              key={moment.id}
+              style={{
+                marginBottom: 20,
+                borderRadius: 12,
+                overflow: "hidden",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+              }}
+            >
+              {/* 用户信息 */}
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+                <Avatar src={moment.user.avatar} />
+                <div style={{ marginLeft: 10 }}>
+                  <strong>{moment.user.name}</strong>
+                  <div style={{ fontSize: 12, color: "#999" }}>
+                    {formatDistance(new Date(moment.created_at), new Date(), {
+                      addSuffix: true,
+                      locale: currentLanguage === "zh" ? zhCN : enUS,
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* 文本内容 */}
+              <div style={{ marginBottom: 10 }}>{moment.content}</div>
+
+              {/* 九宫格图片 */}
+              {moment.images?.length > 0 && (
+                <div
                   style={{
-                    borderRadius: "16px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: 8,
+                    marginBottom: 10,
                   }}
                 >
-                  {/* 用户信息 */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      marginBottom: 16,
-                    }}
+                  {moment.images.slice(0, 9).map((img: string, idx: number) => (
+                    <Image
+                      key={idx}
+                      src={img}
+                      alt={`moment-img-${idx}`}
+                      width="100%"
+                      height={100}
+                      style={{ objectFit: "cover", borderRadius: 8 }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* 点赞和评论按钮 */}
+              <Space style={{ marginTop: 10 }}>
+                <Button
+                  type="text"
+                  icon={moment.liked ? <LikeFilled /> : <LikeOutlined />}
+                  onClick={() => handleLike(moment.id)}
+                >
+                  {moment.likes}
+                </Button>
+                <Button
+                  type="text"
+                  icon={<CommentOutlined />}
+                  onClick={() =>
+                    setShowComments((prev) => ({
+                      ...prev,
+                      [moment.id]: !prev[moment.id],
+                    }))
+                  }
+                >
+                  {moment.comments?.length || 0}
+                </Button>
+              </Space>
+
+              {/* 评论输入框 + 列表 */}
+              <AnimatePresence>
+                {showComments[moment.id] && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    style={{ overflow: "hidden", marginTop: 10 }}
                   >
-                    <Avatar src={moment.user.avatar} size={44} />
-                    <div style={{ marginLeft: 12 }}>
-                      <div style={{ fontWeight: 600 }}>{moment.user.name}</div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: currentTheme.colors.secondaryText,
-                        }}
-                      >
-                        {formatDistance(
-                          new Date(moment.created_at),
-                          new Date(),
-                          {
-                            addSuffix: true,
-                            locale: currentLanguage === "zh" ? zhCN : enUS,
-                          }
-                        )}
-                      </div>
+                    <Divider />
+                    <div style={{ marginBottom: 8 }}>
+                      {moment.comments.map((comment: any) => (
+                        <div key={comment.id} style={{ marginBottom: 6 }}>
+                          <strong>{comment.user.name}:</strong> {comment.content}
+                        </div>
+                      ))}
                     </div>
-                  </div>
-
-                  {/* 动态内容 */}
-                  <div style={{ fontSize: 16, marginBottom: 16 }}>
-                    {moment.content}
-                  </div>
-
-                  {/* 图片展示 */}
-                  {moment.images && (
-                    <Image.PreviewGroup>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns:
-                            moment.images.length === 1
-                              ? "1fr"
-                              : "repeat(auto-fill, minmax(180px, 1fr))",
-                          gap: 8,
-                          marginBottom: 16,
-                          borderRadius: 12,
-                          overflow: "hidden",
-                        }}
-                      >
-                        {moment.images.map((img, index) => (
-                          <Image
-                            key={index}
-                            src={img}
-                            alt={`动态图片 ${index + 1}`}
-                            style={{
-                              objectFit: "cover",
-                              width: "100%",
-                              height:
-                                moment.images.length === 1 ? "auto" : "180px",
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </Image.PreviewGroup>
-                  )}
-
-                  {/* 操作栏 */}
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 16,
-                      padding: "12px 0",
-                      borderTop: `1px solid ${currentTheme.colors.border}`,
-                      borderBottom: showComments[moment.id]
-                        ? `1px solid ${currentTheme.colors.border}`
-                        : "none",
-                    }}
-                  >
-                    <Button
-                      type="text"
-                      icon={
-                        moment.liked ? (
-                          <LikeFilled style={{ color: "#ff2d55" }} />
-                        ) : (
-                          <LikeOutlined />
-                        )
-                      }
-                      onClick={() => handleLike(moment.id)}
-                    >
-                      {moment.likes} {t("moments.likes")}
-                    </Button>
-                    <Button
-                      type="text"
-                      icon={<CommentOutlined />}
-                      onClick={() =>
-                        setShowComments((prev) => ({
+                    <TextArea
+                      rows={2}
+                      placeholder={t("moments.commentPlaceholder")}
+                      value={commentInput[moment.id] || ""}
+                      onChange={(e) =>
+                        setCommentInput((prev) => ({
                           ...prev,
-                          [moment.id]: !prev[moment.id],
+                          [moment.id]: e.target.value,
                         }))
                       }
+                    />
+                    <Button
+                      type="primary"
+                      size="small"
+                      style={{ marginTop: 6 }}
+                      onClick={() => handleComment(moment.id)}
                     >
-                      {moment.comments.length} {t("moments.comments")}
+                      {t("moments.submitComment")}
                     </Button>
-                  </div>
-
-                  {/* 评论区 */}
-                  <AnimatePresence>
-                    {showComments[moment.id] && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                      >
-                        <div style={{ padding: "12px 0" }}>
-                          {moment.comments.map((comment) => (
-                            <div
-                              key={comment.id}
-                              style={{
-                                display: "flex",
-                                gap: 8,
-                                marginBottom: 12,
-                                padding: "8px 12px",
-                                borderRadius: "12px",
-                                background:
-                                  currentTheme.colors.secondaryBackground,
-                              }}
-                            >
-                              <Avatar src={comment.user.avatar} size={32} />
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 500 }}>
-                                  {comment.user.name}
-                                </div>
-                                <div>{comment.content}</div>
-                                <div
-                                  style={{
-                                    fontSize: 12,
-                                    color: currentTheme.colors.secondaryText,
-                                    marginTop: 4,
-                                  }}
-                                >
-                                  {formatDistance(
-                                    new Date(comment.created_at),
-                                    new Date(),
-                                    {
-                                      addSuffix: true,
-                                      locale:
-                                        currentLanguage === "zh" ? zhCN : enUS,
-                                    }
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                          <div
-                            style={{ display: "flex", gap: 8, marginTop: 12 }}
-                          >
-                            <Input.TextArea
-                              value={commentInput[moment.id] || ""}
-                              onChange={(e) =>
-                                setCommentInput((prev) => ({
-                                  ...prev,
-                                  [moment.id]: e.target.value,
-                                }))
-                              }
-                              placeholder={t("moments.commentPlaceholder")}
-                              autoSize={{ minRows: 1, maxRows: 4 }}
-                              style={{
-                                flex: 1,
-                                borderRadius: "20px",
-                                backgroundColor:
-                                  currentTheme.colors.secondaryBackground,
-                              }}
-                            />
-                            <Button
-                              type="primary"
-                              onClick={() => handleComment(moment.id)}
-                              style={{ borderRadius: "20px" }}
-                            >
-                              {t("moments.send")}
-                            </Button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </Space>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Card>
+          ))
+        )}
       </div>
+
     </div>
   );
 }
