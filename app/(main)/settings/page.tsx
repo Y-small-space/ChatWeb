@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { wsManager } from "../../../src/services/websocket";
+import { api } from 'src/services/api';
 
 export default function SettingsPage() {
   const { t } = useLanguage();
@@ -180,10 +181,11 @@ export default function SettingsPage() {
             shape="circle"
             size="large"
             style={{ width: "80px", height: "80px" }}
-            onClick={() => {
+            onClick={async () => {
               localStorage.clear();
               sessionStorage.clear();
               wsManager.disconnect();
+              await api.user.markUserOffOnline();
               router.push(`/auth/login`);
             }}
           >

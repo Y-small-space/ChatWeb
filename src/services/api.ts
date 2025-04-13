@@ -209,6 +209,15 @@ class ApiService {
     getUsersByIDs: (userIds) => this.request('/v1/user/getUsersByIDs', {
       method: 'POST',
       body: JSON.stringify({ user_ids: userIds })
+    }),
+    getFriendsOnlineStatus: () => this.request('/v1/user/getFriendsOnlineStatus', {
+      method: 'GET',
+    }),
+    markUserOnline: () => this.request('/v1/user/markUserOnline', {
+      method: 'POST'
+    }),
+    markUserOffOnline: () => this.request('/v1/user/markUserOffOnline', {
+      method: 'POST'
     })
   };
 

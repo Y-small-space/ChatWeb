@@ -7,6 +7,18 @@ import { useTheme } from "../../../src/contexts/ThemeContext";
 import { useLanguage } from "../../../src/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import { api } from "../../../src/services/api";
+interface User {
+  id: string;
+  email: string;
+  phone: string;
+  username: string;
+  avatar: string;
+  status?: string;
+  online?: boolean;
+  last_seen?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const { Search } = Input;
 
@@ -18,6 +30,7 @@ export default function FriendsPage() {
   const [searchValue, setSearchValue] = useState("");
   const [searchUser, setSearchUser] = useState([]);
   const [userList, setUserList] = useState([]);
+  const [userStaus, setUserStatus] = useState()
 
   useEffect(() => {
     getFriends();
@@ -26,7 +39,7 @@ export default function FriendsPage() {
   const renderUserList = (users) => (
     <List
       dataSource={users}
-      renderItem={(user) => (
+      renderItem={(user: User) => (
         <List.Item
           style={{
             padding: "12px",
@@ -42,19 +55,16 @@ export default function FriendsPage() {
         >
           <List.Item.Meta
             avatar={
-              <Badge dot={user.online} offset={[-6, 28]} color="green">
+              <Badge dot={userStaus?.get(user.id)} offset={[-6, 35]} color="green">
                 <Avatar src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} size={48} />
               </Badge>
             }
             title={user.username}
             description={
               <div style={{ color: currentTheme.colors.secondaryText }}>
-                {/* {user.online
+                {userStaus?.get(user.id)
                   ? t("friends.online")
-                  : t("friends.lastSeen", {
-                    time: new Date(user.updated_at || "").toLocaleString(),
-                  })} */}
-                {t("friends.lastSeen") + new Date(user.updated_at || "").toLocaleString()}
+                  : t("friends.lastSeen") + new Date(user.updated_at || "").toLocaleString()}
               </div>
             }
           />
@@ -114,9 +124,23 @@ export default function FriendsPage() {
   };
 
   const getFriends = async () => {
-    const res = await api.friends.getFriends();
-    setUserList(res.data.friends);
-    localStorage.setItem("userList", JSON.stringify(res.data.friends));
+    const res: any = await api.friends.getFriends();
+    if (res.data?.friends) {
+      console.log(res.data.friends.sort(() => -1));
+
+      setUserList(res.data.friends);
+      localStorage.setItem("userList", JSON.stringify(res.data.friends));
+    }
+
+    const resp = await api.user.getFriendsOnlineStatus();
+    if (resp?.data?.onlineStatus) {
+      console.log(resp);
+      const status = new Map();
+      resp.data.onlineStatus.forEach((item) => {
+        status.set(item.user_id, item.online)
+      })
+      setUserStatus(status)
+    }
   };
 
   return (
@@ -130,17 +154,6 @@ export default function FriendsPage() {
           justifyContent: "space-between",
         }}
       >
-        {disable && (
-          <Search
-            placeholder={t("friends.search")}
-            style={{ maxWidth: "300px" }}
-            prefix={
-              <SearchOutlined
-                style={{ color: currentTheme.colors.secondaryText }}
-              />
-            }
-          />
-        )}
       </div>
 
       <Tabs
@@ -148,7 +161,7 @@ export default function FriendsPage() {
           {
             key: "all",
             label: t("friends.all"),
-            children: renderUserList(userList),
+            children: renderUserList(userList.sort(() => 1)),
           },
           {
             key: "online",

@@ -45,6 +45,7 @@ export default function LoginPage() {
         getGroupList();
         getFriends();
         wsManager.connect();
+        await api.user.markUserOnline()
       }
       router.push("/");
       setLoading(false);
